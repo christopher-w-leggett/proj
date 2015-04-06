@@ -15,6 +15,7 @@ PROGRAM_VERSION=0.0.1
 COMMAND_DIR=${PROGRAM_DIR}/commands
 . "${COMMAND_DIR}/help"
 . "${COMMAND_DIR}/dir"
+. "${COMMAND_DIR}/init"
 
 ################
 # Main Program #

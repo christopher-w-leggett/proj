@@ -3,7 +3,7 @@
 command_dir(){
     local PROJ_NAME=${1}
 
-    if [ "" != ${PROJ_NAME} ]; then
+    if [[ -n ${PROJ_NAME} && "" != ${PROJ_NAME} ]]; then
         local PROJ_DIR=$(project_directory ${PROJ_NAME})
 
         if [ -d ${PROJ_DIR} ]; then
@@ -12,8 +12,7 @@ command_dir(){
             echo "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}."
         fi
     else
-        # TODO: show help instead
-        echo "Please provide a project name to show the project directory."
+        echo "A project name is required to show the project directory.  Use '${PROGRAM_NAME} help dir' for help with the dir command."
     fi
 }
 

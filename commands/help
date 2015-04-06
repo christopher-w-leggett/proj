@@ -1,12 +1,35 @@
 #!/bin/bash
 
 command_help(){
-    echo "usage: ${PROGRAM_NAME} [-v] [-h] <command> [<args>]"
-    echo ""
-    echo "Commands:"
-    echo "   dir   Displays a project's directory."
-    echo ""
-    echo "Use '${PROGRAM_NAME} help <command>' for help with a specific command."
-    echo ""
+    local COMMAND=${1}
+
+    case ${COMMAND} in
+        "")
+            echo "usage: ${PROGRAM_NAME} [-v] [-h] <command> [<args>]"
+            echo ""
+            echo "Commands:"
+            echo "   dir   Displays a project's directory."
+            echo ""
+            echo "Use '${PROGRAM_NAME} help <command>' for help with a specific command."
+            echo ""
+            ;;
+        "dir")
+            echo "USAGE"
+            echo "   ${PROGRAM_NAME} dir <project_name>"
+            echo ""
+            echo "DESCRIPTION"
+            echo "   The 'dir' command can be used to output a project directory using the project's name."
+            ;;
+        "init")
+            echo "USAGE"
+            echo "   ${PROGRAM_NAME} init <project_name>"
+            echo ""
+            echo "DESCRIPTION"
+            echo "   The 'init' command can be used to initialize a new project.  This command will setup a default directory structure for a new project."
+            ;;
+        *)
+            echo "no help currently exists for '${COMMAND}' command."
+            ;;
+    esac
 }
 

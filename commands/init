@@ -1,0 +1,27 @@
+#!/bin/bash
+
+command_init(){
+    local PROJ_NAME=${1}
+
+    if [[ -n ${PROJ_NAME} && "" != ${PROJ_NAME} ]]; then
+        local PROJ_DIR=$(project_directory ${PROJ_NAME})
+
+        if [ ! -d ${PROJ_DIR} ]; then
+            mkdir ${PROJ_DIR}
+            mkdir ${PROJ_DIR}/bin
+            mkdir ${PROJ_DIR}/code
+            mkdir ${PROJ_DIR}/dependencies
+            mkdir ${PROJ_DIR}/documents
+            mkdir ${PROJ_DIR}/sites
+            mkdir ${PROJ_DIR}/sites/author
+            mkdir ${PROJ_DIR}/sites/publish
+
+            echo "Project structure created at ${PROJ_DIR}."
+        else
+            echo "The ${PROJ_NAME} project already exists in directory ${PROJ_DIR}."
+        fi
+    else
+        echo "A project name is required to initialize the project directory.  Use '${PROGRAM_NAME} help init' for help with the init command."
+    fi
+}
+
