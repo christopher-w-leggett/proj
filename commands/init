@@ -1,5 +1,29 @@
 #!/bin/bash
 
+_setup_aem(){
+    local AEM_JAR_PATH=${1}
+    local AEM_JAR_NAME=$(basename ${AEM_JAR_PATH})
+    local INSTALL_DIR=${2}
+    local RUNMODES=${3}
+    local PORT=${4}
+    local INCLUDE_GEOMETRIXX=${5}
+
+    echo "Copying ${AEM_JAR_PATH} to ${INSTALL_DIR}."
+    cp ${AEM_JAR_PATH} ${INSTALL_DIR}
+
+    local CURRENT_DIR=$(pwd)
+
+    echo "Switching to ${INSTALL_DIR} to unpack jar."
+    cd ${INSTALL_DIR}
+    java -jar ${AEM_JAR_NAME} -unpack &> /dev/null
+
+    echo "Jar unpacked, switching back to ${CURRENT_DIR}."
+    cd ${CURRENT_DIR}
+
+    sed -i "s/CQ_PORT=450[0-9]/CQ_PORT=${PORT}/g" ${INSTALL_DIR}/crx-quickstart/bin/start
+    # TODO: Add replacement for runmodes (including nosamplecontent runmode if needed)
+}
+
 command_init(){
     local PROJ_NAME=${1}
 
@@ -17,7 +41,21 @@ command_init(){
             mkdir ${PROJ_DIR}/sites/author
             mkdir ${PROJ_DIR}/sites/publish
 
-            echo "Project structure created at ${PROJ_DIR}."
+            echo "Project structure created at ${PROJ_DIR}.  Would you also like to setup AEM (y/n)?"
+            read SETUP_AEM
+
+            if [ "y" == ${SETUP_AEM} ]; then
+                echo "Provide path to AEM jar:"
+                read AEM_JAR_PATH
+
+                if [[ "" != ${AEM_JAR_PATH} && -f ${AEM_JAR_PATH} ]]; then
+                    echo "Would you like to include geometrixx content (y/n)?"
+                    read INCLUDE_GEOMETRIXX
+
+                    _setup_aem ${AEM_JAR_PATH} ${PROJ_DIR}/sites/author author 4502 ${INCLUDE_GEOMETRIXX}
+                    _setup_aem ${AEM_JAR_PATH} ${PROJ_DIR}/sites/publish publish 4503 ${INCLUDE_GEOMETRIXX}
+                fi
+            fi
         else
             echo "The ${PROJ_NAME} project already exists in directory ${PROJ_DIR}."
         fi
