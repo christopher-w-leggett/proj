@@ -1,6 +1,6 @@
 #!/bin/bash
 
 project_directory(){
-    echo "${PROJ_HOME}/${1}"
+    echo "${PROJ_PROJECTS_HOME}/${1}"
 }
 
