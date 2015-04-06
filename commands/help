@@ -1,0 +1,12 @@
+#!/bin/bash
+
+command_help(){
+    echo "usage: ${PROGRAM_NAME} [-v] [-h] <command> [<args>]"
+    echo ""
+    echo "Commands:"
+    echo "   dir   Displays a project's directory."
+    echo ""
+    echo "Use '${PROGRAM_NAME} help <command>' for help with a specific command."
+    echo ""
+}
+

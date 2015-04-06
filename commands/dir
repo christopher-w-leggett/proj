@@ -1,0 +1,19 @@
+#!/bin/bash
+
+command_dir(){
+    local PROJ_NAME=${1}
+
+    if [ "" != ${PROJ_NAME} ]; then
+        local PROJ_DIR=$(project_directory ${PROJ_NAME})
+
+        if [ -d ${PROJ_DIR} ]; then
+            echo ${PROJ_DIR}
+        else
+            echo "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}."
+        fi
+    else
+        # TODO: show help instead
+        echo "Please provide a project name to show the project directory."
+    fi
+}
+

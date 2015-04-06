@@ -1,0 +1,6 @@
+#!/bin/bash
+
+project_directory(){
+    echo "${PROJ_HOME}/${1}"
+}
+

@@ -1,0 +1,56 @@
+#!/bin/bash
+
+PROGRAM_NAME=$(basename $0)
+PROGRAM_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+PROGRAM_VERSION=0.0.1
+
+#####################
+# Include Utilities #
+#####################
+. "${PROGRAM_DIR}/utility"
+
+####################
+# Include Commands #
+####################
+COMMAND_DIR=${PROGRAM_DIR}/commands
+. "${COMMAND_DIR}/help"
+. "${COMMAND_DIR}/dir"
+
+################
+# Main Program #
+################
+while getopts ":vh" opt; do
+    case "${opt}" in
+        v)
+            echo "proj version ${PROGRAM_VERSION}"
+            exit 0
+            ;;
+        h)
+            command_help
+            exit $?
+            ;;
+        \?)
+            echo "Invalid option: -${OPTARG}" >&2
+            exit 1
+            ;;
+        \:)
+            echo "Option -${OPTARG} requires an argument." >&2
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+COMMAND_NAME=${1}
+if [[ -n ${COMMAND_NAME} && "" != ${COMMAND_NAME} ]]; then
+    shift
+    command_${COMMAND_NAME} $@ 2> /dev/null
+    if [ $? = 127 ]; then
+        echo "Error: '${COMMAND_NAME}' is not a known command." >&2
+        echo "       Run '${PROGRAM_NAME} help' for a list of commands." >&2
+        exit 1
+    fi
+else
+    command_help
+fi
+
