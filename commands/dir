@@ -7,12 +7,16 @@ command_dir(){
         local PROJ_DIR=$(project_directory ${PROJ_NAME})
 
         if [ -d ${PROJ_DIR} ]; then
-            echo ${PROJ_DIR}
+            if [ -d ${PROJ_DIR}/.proj ]; then
+                echo ${PROJ_DIR}
+            else
+                echo "The ${PROJ_NAME} project appears to be located at ${PROJ_DIR}, but is not currently tracked by proj."
+            fi
         else
             echo "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}."
         fi
     else
-        echo "A project name is required to show the project directory.  Use '${PROGRAM_NAME} help dir' for help with the dir command."
+        echo ${PROJ_PROJECTS_HOME}
     fi
 }
 

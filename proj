@@ -16,6 +16,7 @@ COMMAND_DIR=${PROGRAM_DIR}/commands
 . "${COMMAND_DIR}/help"
 . "${COMMAND_DIR}/dir"
 . "${COMMAND_DIR}/init"
+. "${COMMAND_DIR}/list"
 
 ################
 # Main Program #

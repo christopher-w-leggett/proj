@@ -9,16 +9,18 @@ command_help(){
             echo ""
             echo "Commands:"
             echo "   dir   Displays a project's directory."
+            echo "   init  Initializes a project's directory."
+            echo "   list  Lists projects currently managed by proj."
             echo ""
             echo "Use '${PROGRAM_NAME} help <command>' for help with a specific command."
             echo ""
             ;;
         "dir")
             echo "USAGE"
-            echo "   ${PROGRAM_NAME} dir <project_name>"
+            echo "   ${PROGRAM_NAME} dir [<project_name>]"
             echo ""
             echo "DESCRIPTION"
-            echo "   The 'dir' command can be used to output a project directory using the project's name."
+            echo "   The 'dir' command can be used to output a project directory using the project's name.  If no project name is provided, the base project directory will be printed."
             ;;
         "init")
             echo "USAGE"
@@ -26,6 +28,13 @@ command_help(){
             echo ""
             echo "DESCRIPTION"
             echo "   The 'init' command can be used to initialize a new project.  This command will setup a default directory structure for a new project."
+            ;;
+        "list")
+            echo "USAGE"
+            echo "   ${PROGRAM_NAME} list"
+            echo ""
+            echo "DESCRIPTION"
+            echo "   The 'list' command is used to list all projects under the PROJ_PROJECTS_HOME directory that are currently being managed by proj."
             ;;
         *)
             echo "no help currently exists for '${COMMAND}' command."

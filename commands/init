@@ -8,6 +8,7 @@ command_init(){
 
         if [ ! -d ${PROJ_DIR} ]; then
             mkdir ${PROJ_DIR}
+            mkdir ${PROJ_DIR}/.proj
             mkdir ${PROJ_DIR}/bin
             mkdir ${PROJ_DIR}/code
             mkdir ${PROJ_DIR}/dependencies
