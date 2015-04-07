@@ -7,6 +7,7 @@ _setup_aem(){
     local RUNMODES=${3}
     local PORT=${4}
     local INCLUDE_GEOMETRIXX=${5}
+    local DEBUG_PORT=${6}
 
     echo "Copying ${AEM_JAR_PATH} to ${INSTALL_DIR}."
     cp ${AEM_JAR_PATH} ${INSTALL_DIR}
@@ -21,7 +22,13 @@ _setup_aem(){
     cd ${CURRENT_DIR}
 
     sed -i "s/CQ_PORT=450[0-9]/CQ_PORT=${PORT}/g" ${INSTALL_DIR}/crx-quickstart/bin/start
-    # TODO: Add replacement for runmodes (including nosamplecontent runmode if needed)
+
+    if [ "y" != ${INCLUDE_GEOMETRIXX} ]; then
+        RUNMODES="${RUNMODES},nosamplecontent"
+    fi
+    sed -i "s/CQ_RUNMODE='.*'/CQ_RUNMODE='${RUNMODES}'/g" ${INSTALL_DIR}/crx-quickstart/bin/start
+
+    sed -i "s/CQ_JVM_OPTS='\(.*\)'/CQ_JVM_OPTS='\1 -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${DEBUG_PORT}'/g" ${INSTALL_DIR}/crx-quickstart/bin/start
 }
 
 command_init(){
@@ -52,8 +59,8 @@ command_init(){
                     echo "Would you like to include geometrixx content (y/n)?"
                     read INCLUDE_GEOMETRIXX
 
-                    _setup_aem ${AEM_JAR_PATH} ${PROJ_DIR}/sites/author author 4502 ${INCLUDE_GEOMETRIXX}
-                    _setup_aem ${AEM_JAR_PATH} ${PROJ_DIR}/sites/publish publish 4503 ${INCLUDE_GEOMETRIXX}
+                    _setup_aem ${AEM_JAR_PATH} ${PROJ_DIR}/sites/author author 4502 ${INCLUDE_GEOMETRIXX} 30303
+                    _setup_aem ${AEM_JAR_PATH} ${PROJ_DIR}/sites/publish publish 4503 ${INCLUDE_GEOMETRIXX} 30304
                 fi
             fi
         else
