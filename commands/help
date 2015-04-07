@@ -8,9 +8,11 @@ command_help(){
             echo "usage: ${PROGRAM_NAME} [-v] [-h] <command> [<args>]"
             echo ""
             echo "Commands:"
-            echo "   dir   Displays a project's directory."
-            echo "   init  Initializes a project's directory."
-            echo "   list  Lists projects currently managed by proj."
+            echo "   dir     Displays a project's directory."
+            echo "   init    Initializes a project's directory."
+            echo "   list    Lists projects currently managed by proj."
+            echo "   start   Starts a project using its start script."
+            echo "   stop    Stops a project using its stop script."
             echo ""
             echo "Use '${PROGRAM_NAME} help <command>' for help with a specific command."
             echo ""
@@ -35,6 +37,20 @@ command_help(){
             echo ""
             echo "DESCRIPTION"
             echo "   The 'list' command is used to list all projects under the PROJ_PROJECTS_HOME directory that are currently being managed by proj."
+            ;;
+        "start")
+            echo "USAGE"
+            echo "   ${PROGRAM_NAME} start <project_name>"
+            echo ""
+            echo "DESCRIPTION"
+            echo "   The 'start' command is used to start an existing project."
+            ;;
+        "stop")
+            echo "USAGE"
+            echo "   ${PROGRAM_NAME} stop <project_name>"
+            echo ""
+            echo "DESCRIPTION"
+            echo "   The 'stop' command is used to stop an existing project."
             ;;
         *)
             echo "no help currently exists for '${COMMAND}' command."

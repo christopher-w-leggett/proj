@@ -39,8 +39,7 @@ command_init(){
 
         if [ ! -d ${PROJ_DIR} ]; then
             mkdir ${PROJ_DIR}
-            mkdir ${PROJ_DIR}/.proj
-            mkdir ${PROJ_DIR}/bin
+            cp -r ${PROGRAM_DIR}/.proj ${PROJ_DIR}/.proj
             mkdir ${PROJ_DIR}/code
             mkdir ${PROJ_DIR}/dependencies
             mkdir ${PROJ_DIR}/documents
