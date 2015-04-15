@@ -3,11 +3,61 @@
 _setup_aem(){
     local AEM_JAR_PATH=${1}
     local AEM_JAR_NAME=$(basename ${AEM_JAR_PATH})
-    local INSTALL_DIR=${2}
-    local RUNMODES=${3}
-    local PORT=${4}
-    local INCLUDE_GEOMETRIXX=${5}
-    local DEBUG_PORT=${6}
+    local PROJ_DIR=${2}
+
+    # Gather AEM instance details
+    echo "What type of AEM instance is this (author/publish)?"
+    read INSTANCE_TYPE
+    while [[ "author" != ${INSTANCE_TYPE} && "publish" != ${INSTANCE_TYPE} ]]; do
+        echo "I didn't quite get that.  What type of AEM instance is this (author/publish)?"
+        read INSTANCE_TYPE
+    done
+    if [ -d ${PROJ_DIR}/sites/${INSTANCE_TYPE} ]; then
+        echo "An ${INSTANCE_TYPE} AEM instance already exists."
+        return 64
+    fi
+
+    local RUNMODES=${INSTANCE_TYPE}
+    echo "Enter any additional runmodes:"
+    read ADDITIONAL_RUNMODES
+    if [ "" != ${ADDITIONAL_RUNMODES} ]; then
+        RUNMODES="${RUNMODES},${ADDITIONAL_RUNMODES}"
+    fi
+
+    echo "Would you like to include geometrixx content (y/n)?"
+    read INCLUDE_GEOMETRIXX
+    if [ "y" != ${INCLUDE_GEOMETRIXX} ]; then
+        RUNMODES="${RUNMODES},nosamplecontent"
+    fi
+
+    local PORT="4502"
+    local DEBUG_PORT="30303"
+    if [ "publish" == ${INSTANCE_TYPE} ]; then
+        PORT="4503"
+        DEBUG_PORT="30304"
+    fi
+
+    echo "Enter the port [${PORT}]:"
+    read USER_DEFINED_PORT
+    if [ "" != ${USER_DEFINED_PORT} ]; then
+        PORT=${USER_DEFINED_PORT}
+    fi
+
+    echo "Enter the debug port [${DEBUG_PORT}]:"
+    read USER_DEFINED_DEBUG_PORT
+    if [ "" != ${USER_DEFINED_DEBUG_PORT} ]; then
+        DEBUG_PORT=${USER_DEFINED_DEBUG_PORT}
+    fi
+
+    if [ ! -d ${PROJ_DIR}/sites ]; then
+        echo "Creating ${PROJ_DIR}/sites."
+        mkdir ${PROJ_DIR}/sites
+    fi
+    local INSTALL_DIR=${PROJ_DIR}/sites/${INSTANCE_TYPE}
+    if [ ! -d ${INSTALL_DIR} ]; then
+        echo "Creating ${INSTALL_DIR}."
+        mkdir ${INSTALL_DIR}
+    fi
 
     echo "Copying ${AEM_JAR_PATH} to ${INSTALL_DIR}."
     cp ${AEM_JAR_PATH} ${INSTALL_DIR}
@@ -23,9 +73,6 @@ _setup_aem(){
 
     sed -i "s/CQ_PORT=450[0-9]/CQ_PORT=${PORT}/g" ${INSTALL_DIR}/crx-quickstart/bin/start
 
-    if [ "y" != ${INCLUDE_GEOMETRIXX} ]; then
-        RUNMODES="${RUNMODES},nosamplecontent"
-    fi
     sed -i "s/CQ_RUNMODE='.*'/CQ_RUNMODE='${RUNMODES}'/g" ${INSTALL_DIR}/crx-quickstart/bin/start
 
     sed -i "s/CQ_JVM_OPTS='\(.*\)'/CQ_JVM_OPTS='\1 -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${DEBUG_PORT}'/g" ${INSTALL_DIR}/crx-quickstart/bin/start
@@ -38,14 +85,15 @@ command_init(){
         local PROJ_DIR=$(project_directory ${PROJ_NAME})
 
         if [ ! -d ${PROJ_DIR} ]; then
+            echo "Creating ${PROJ_DIR}."
             mkdir ${PROJ_DIR}
             cp -r ${PROGRAM_DIR}/.proj ${PROJ_DIR}/.proj
+            echo "Creating ${PROJ_DIR}/code."
             mkdir ${PROJ_DIR}/code
+            echo "Creating ${PROJ_DIR}/dependencies."
             mkdir ${PROJ_DIR}/dependencies
+            echo "Creating ${PROJ_DIR}/documents."
             mkdir ${PROJ_DIR}/documents
-            mkdir ${PROJ_DIR}/sites
-            mkdir ${PROJ_DIR}/sites/author
-            mkdir ${PROJ_DIR}/sites/publish
 
             echo "Project structure created at ${PROJ_DIR}.  Would you also like to setup AEM (y/n)?"
             read SETUP_AEM
@@ -55,11 +103,14 @@ command_init(){
                 read AEM_JAR_PATH
 
                 if [[ "" != ${AEM_JAR_PATH} && -f ${AEM_JAR_PATH} ]]; then
-                    echo "Would you like to include geometrixx content (y/n)?"
-                    read INCLUDE_GEOMETRIXX
+                    while [ "y" == ${SETUP_AEM} ]; do
+                        _setup_aem ${AEM_JAR_PATH} ${PROJ_DIR}
 
-                    _setup_aem ${AEM_JAR_PATH} ${PROJ_DIR}/sites/author author 4502 ${INCLUDE_GEOMETRIXX} 30303
-                    _setup_aem ${AEM_JAR_PATH} ${PROJ_DIR}/sites/publish publish 4503 ${INCLUDE_GEOMETRIXX} 30304
+                        echo "Would you like to setup another AEM instance (y/n)?"
+                        read SETUP_AEM
+                    done
+                else
+                    echo "No AEM jar provided, skipping AEM setup."
                 fi
             fi
         else
