@@ -1,0 +1,151 @@
+#!/bin/bash
+
+_setup_aem(){
+    local AEM_JAR_PATH=${1}
+    local AEM_JAR_NAME=$(basename ${AEM_JAR_PATH})
+    local PROJ_DIR=${2}
+
+    # Grab parameter values TODO: Implement this
+    local INSTANCE_TYPE=""
+    local ADDITIONAL_RUNMODES=""
+    local INCLUDE_GEOMETRIXX=""
+
+    # Gather AEM instance details
+    local INSTANCE_TYPE_INPUT_MESSAGE="What type of AEM instance is this (author/publish)?"
+    while [[ "author" != ${INSTANCE_TYPE} && "publish" != ${INSTANCE_TYPE} ]]; do
+        echo ${INSTANCE_TYPE_INPUT_MESSAGE}
+        read INSTANCE_TYPE
+
+        INSTANCE_TYPE_INPUT_MESSAGE="I didn't quite get that.  ${INSTANCE_TYPE_INPUT_MESSAGE}"
+    done
+    if [ -d ${PROJ_DIR}/sites/${INSTANCE_TYPE} ]; then
+        echo "An ${INSTANCE_TYPE} AEM instance already exists."
+        return 64
+    fi
+
+    local RUNMODES=${INSTANCE_TYPE}
+    if [[ -z "${ADDITIONAL_RUNMODES}" || "" == "${ADDITIONAL_RUNMODES}" ]]; then
+        echo "Enter any additional runmodes:"
+        read ADDITIONAL_RUNMODES
+    fi
+    if [[ -n "${ADDITIONAL_RUNMODES}" && "" != "${ADDITIONAL_RUNMODES}" ]]; then
+        RUNMODES="${RUNMODES},${ADDITIONAL_RUNMODES}"
+    fi
+
+    local INCLUDE_GEOMETRIXX_INPUT_MESSAGE="Would you like to include geometrixx content (y/n)?"
+    while [[ "y" != ${INCLUDE_GEOMETRIXX} && "n" != ${INCLUDE_GEOMETRIXX} ]]; do
+        echo ${INCLUDE_GEOMETRIXX_INPUT_MESSAGE}
+        read INCLUDE_GEOMETRIXX
+
+        INCLUDE_GEOMETRIXX_INPUT_MESSAGE="I didn't quite get that.  ${INCLUDE_GEOMETRIXX_INPUT_MESSAGE}"
+    done
+    if [ "y" != ${INCLUDE_GEOMETRIXX} ]; then
+        RUNMODES="${RUNMODES},nosamplecontent"
+    fi
+
+    local PORT="4502"
+    local DEBUG_PORT="30303"
+    if [ "publish" == ${INSTANCE_TYPE} ]; then
+        PORT="4503"
+        DEBUG_PORT="30304"
+    fi
+
+    echo "Enter the port [${PORT}]:"
+    read USER_DEFINED_PORT
+    if [[ -n "${USER_DEFINED_PORT}" && "" != "${USER_DEFINED_PORT}" ]]; then
+        PORT=${USER_DEFINED_PORT}
+    fi
+
+    echo "Enter the debug port [${DEBUG_PORT}]:"
+    read USER_DEFINED_DEBUG_PORT
+    if [[ -n "${USER_DEFINED_DEBUG_PORT}" && "" != "${USER_DEFINED_DEBUG_PORT}" ]]; then
+        DEBUG_PORT=${USER_DEFINED_DEBUG_PORT}
+    fi
+
+    # Create directories
+    if [ ! -d ${PROJ_DIR}/sites ]; then
+        echo "Creating ${PROJ_DIR}/sites."
+        mkdir ${PROJ_DIR}/sites
+    fi
+    local INSTALL_DIR=${PROJ_DIR}/sites/${INSTANCE_TYPE}
+    if [ ! -d ${INSTALL_DIR} ]; then
+        echo "Creating ${INSTALL_DIR}."
+        mkdir ${INSTALL_DIR}
+    fi
+
+    # Setup AEM
+    echo "Copying ${AEM_JAR_PATH} to ${INSTALL_DIR}."
+    cp ${AEM_JAR_PATH} ${INSTALL_DIR}
+
+    local CURRENT_DIR=$(pwd)
+
+    echo "Switching to ${INSTALL_DIR} to unpack jar."
+    cd ${INSTALL_DIR}
+    java -jar ${AEM_JAR_NAME} -unpack &> /dev/null
+
+    echo "Jar unpacked, switching back to ${CURRENT_DIR}."
+    cd ${CURRENT_DIR}
+
+    sed -i "s/CQ_PORT=450[0-9]/CQ_PORT=${PORT}/g" ${INSTALL_DIR}/crx-quickstart/bin/start
+
+    sed -i "s/CQ_RUNMODE='.*'/CQ_RUNMODE='${RUNMODES}'/g" ${INSTALL_DIR}/crx-quickstart/bin/start
+
+    sed -i "s/CQ_JVM_OPTS='\(.*\)'/CQ_JVM_OPTS='\1 -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${DEBUG_PORT}'/g" ${INSTALL_DIR}/crx-quickstart/bin/start
+}
+
+command_setup-aem(){
+    local PROJ_NAME=${1}
+    local AEM_JAR_PATH=""
+    shift
+
+    while getopts ":j:" opt; do
+        case "${opt}" in
+            j)
+                echo "Using AEM jar located at ${OPTARG}"
+                AEM_JAR_PATH=${OPTARG}
+                ;;
+            \?)
+                echo "Invalid option: -${OPTARG}" >&2
+                exit 1
+                ;;
+            \:)
+                echo "Option -${OPTARG} requires an argument." >&2
+                exit 1
+                ;;
+        esac
+    done
+
+    if [[ -n "${PROJ_NAME}" && "" != "${PROJ_NAME}" ]]; then
+        local PROJ_DIR=$(project_directory ${PROJ_NAME})
+
+        if [ -d ${PROJ_DIR} ]; then
+            if [[ -z "${AEM_JAR_PATH}" || "" == "${AEM_JAR_PATH}" ]]; then
+                echo "Provide path to AEM jar:"
+                read AEM_JAR_PATH
+            fi
+
+            if [[ -n "${AEM_JAR_PATH}" && "" != "${AEM_JAR_PATH}" && -f ${AEM_JAR_PATH} ]]; then
+                local SETUP_AEM="y"
+                while [ "y" == ${SETUP_AEM} ]; do
+                    _setup_aem ${AEM_JAR_PATH} ${PROJ_DIR}
+
+                    SETUP_AEM=""
+                    local SETUP_AEM_INPUT_MESSAGE="Would you like to setup another AEM instance (y/n)?"
+                    while [[ "y" != ${SETUP_AEM} && "n" != ${SETUP_AEM} ]]; do
+                        echo ${SETUP_AEM_INPUT_MESSAGE}
+                        read SETUP_AEM
+
+                        SETUP_AEM_INPUT_MESSAGE="I didn't quite get that.  ${SETUP_AEM_INPUT_MESSAGE}"
+                    done
+                done
+            else
+                echo "No AEM jar provided, unable to setup AEM."
+            fi
+        else
+            echo "The ${PROJ_NAME} project doesn't exists in directory ${PROJ_DIR}.  Please use '${PROGRAM_NAME} init ${PROJ_NAME}' to initialize the project."
+        fi
+    else
+        echo "A project name is required to setup AEM in the project directory.  Use '${PROGRAM_NAME} help setup-aem' for help with the setup-aem command."
+    fi
+}
+

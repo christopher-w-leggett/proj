@@ -13,12 +13,10 @@ PROGRAM_VERSION=0.0.1
 # Include Commands #
 ####################
 COMMAND_DIR=${PROGRAM_DIR}/commands
-. "${COMMAND_DIR}/help"
-. "${COMMAND_DIR}/dir"
-. "${COMMAND_DIR}/init"
-. "${COMMAND_DIR}/list"
-. "${COMMAND_DIR}/start"
-. "${COMMAND_DIR}/stop"
+VALID_COMMANDS=(help dir init list start stop setup-aem)
+for VALID_COMMAND in ${VALID_COMMANDS[@]}; do
+    . "${COMMAND_DIR}/${VALID_COMMAND}"
+done
 
 ################
 # Main Program #
@@ -45,15 +43,16 @@ while getopts ":vh" opt; do
 done
 shift $((OPTIND-1))
 
-COMMAND_NAME=${1}
-if [[ -n ${COMMAND_NAME} && "" != ${COMMAND_NAME} ]]; then
+COMMAND_NAMES=()
+while [[ " ${VALID_COMMANDS[*]} " == *" ${1} "* ]]; do
+    COMMAND_NAMES+=(${1})
     shift
-    command_${COMMAND_NAME} $@ 2> /dev/null
-    if [ $? = 127 ]; then
-        echo "Error: '${COMMAND_NAME}' is not a known command." >&2
-        echo "       Run '${PROGRAM_NAME} help' for a list of commands." >&2
-        exit 1
-    fi
+done
+
+if [ ${#COMMAND_NAMES[@]} -ne 0 ]; then
+    for COMMAND_NAME in ${COMMAND_NAMES[@]}; do
+        command_${COMMAND_NAME} $@ 2> /dev/null
+    done
 else
     command_help
 fi

@@ -5,14 +5,15 @@ command_help(){
 
     case ${COMMAND} in
         "")
-            echo "usage: ${PROGRAM_NAME} [-v] [-h] <command> [<args>]"
+            echo "usage: ${PROGRAM_NAME} [-v] [-h] <command> [<command>...] [<args>]"
             echo ""
             echo "Commands:"
-            echo "   dir     Displays a project's directory."
-            echo "   init    Initializes a project's directory."
-            echo "   list    Lists projects currently managed by proj."
-            echo "   start   Starts a project using its start script."
-            echo "   stop    Stops a project using its stop script."
+            echo "   dir         Displays a project's directory."
+            echo "   init        Initializes a project's directory."
+            echo "   list        Lists projects currently managed by proj."
+            echo "   start       Starts a project using its start script."
+            echo "   stop        Stops a project using its stop script."
+            echo "   setup-aem   Sets up one or more AEM instances."
             echo ""
             echo "Use '${PROGRAM_NAME} help <command>' for help with a specific command."
             echo ""
@@ -51,6 +52,13 @@ command_help(){
             echo ""
             echo "DESCRIPTION"
             echo "   The 'stop' command is used to stop an existing project."
+            ;;
+        "setup-aem")
+            echo "USAGE"
+            echo "   ${PROGRAM_NAME} setup-aem <project_name> [-j <aem_jar>]"
+            echo ""
+            echo "DESCRIPTION"
+            echo "   The 'setup-aem' command is used to setup one or more AEM instances in an existing project."
             ;;
         *)
             echo "no help currently exists for '${COMMAND}' command."
