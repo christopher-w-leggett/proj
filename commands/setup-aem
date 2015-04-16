@@ -9,6 +9,7 @@ _setup_aem(){
     local INSTANCE_TYPE=""
     local ADDITIONAL_RUNMODES=""
     local INCLUDE_GEOMETRIXX=""
+    local PACKAGES=()
 
     # Gather AEM instance details
     local INSTANCE_TYPE_INPUT_MESSAGE="What type of AEM instance is this (author/publish)?"
@@ -62,6 +63,18 @@ _setup_aem(){
         DEBUG_PORT=${USER_DEFINED_DEBUG_PORT}
     fi
 
+    echo "Do you have any packages you want installed (blank value to stop adding packages)?"
+    read ADDED_PACKAGE
+    while [[ -n "${ADDED_PACKAGE}" && "" != "${ADDED_PACKAGE}" ]]; do
+        if [ -f ${ADDED_PACKAGE} ]; then
+            PACKAGES+=(${ADDED_PACKAGE})
+        else
+            echo "${ADDED_PACKAGE} is not a valid package."
+        fi
+
+        read ADDED_PACKAGE
+    done
+
     # Create directories
     if [ ! -d ${PROJ_DIR}/sites ]; then
         echo "Creating ${PROJ_DIR}/sites."
@@ -85,6 +98,15 @@ _setup_aem(){
 
     echo "Jar unpacked, switching back to ${CURRENT_DIR}."
     cd ${CURRENT_DIR}
+
+    if [ ${#PACKAGES[@]} -ne 0 ]; then
+        mkdir ${INSTALL_DIR}/crx-quickstart/install
+
+        for PACKAGE in ${PACKAGES[@]}; do
+            echo "Copying package ${PACKAGE}."
+            cp ${PACKAGE} ${INSTALL_DIR}/crx-quickstart/install
+        done
+    fi
 
     sed -i "s/CQ_PORT=450[0-9]/CQ_PORT=${PORT}/g" ${INSTALL_DIR}/crx-quickstart/bin/start
 
