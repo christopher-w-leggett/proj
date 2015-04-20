@@ -33,11 +33,11 @@ while getopts ":vh" opt; do
             ;;
         \?)
             echo "Invalid option: -${OPTARG}" >&2
-            exit 1
+            exit 67
             ;;
         \:)
             echo "Option -${OPTARG} requires an argument." >&2
-            exit 1
+            exit 68
             ;;
     esac
 done
@@ -52,6 +52,11 @@ done
 if [ ${#COMMAND_NAMES[@]} -ne 0 ]; then
     for COMMAND_NAME in ${COMMAND_NAMES[@]}; do
         command_${COMMAND_NAME} $@ 2> /dev/null
+
+        COMMAND_STATUS=$?
+        if [ ${COMMAND_STATUS} -ne 0 ]; then
+            exit ${COMMAND_STATUS}
+        fi
     done
 else
     command_help

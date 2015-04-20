@@ -11,12 +11,15 @@ command_start(){
                 ${PROJ_DIR}/.proj/bin/start
             else
                 echo "The ${PROJ_NAME} project doesn't have a start script located at ${PROJ_DIR}/.proj/bin/start.  Unable to start ${PROJ_NAME}."
+                return 80
             fi
         else
             echo "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}.  Unable to start ${PROJ_NAME}."
+            return 65
         fi
     else
         echo "A project name is required to start a project.  Use '${PROGRAM_NAME} help start' for help with the start command."
+        return 64
     fi
 }
 

@@ -20,9 +20,11 @@ command_init(){
             echo "Project structure created at ${PROJ_DIR}"
         else
             echo "The ${PROJ_NAME} project already exists in directory ${PROJ_DIR}."
+            return 80
         fi
     else
         echo "A project name is required to initialize the project directory.  Use '${PROGRAM_NAME} help init' for help with the init command."
+        return 64
     fi
 }
 

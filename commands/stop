@@ -11,12 +11,15 @@ command_stop(){
                 ${PROJ_DIR}/.proj/bin/stop
             else
                 echo "The ${PROJ_NAME} project doesn't have a stop script located at ${PROJ_DIR}/.proj/bin/stop.  Unable to stop ${PROJ_NAME}."
+                return 80
             fi
         else
             echo "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}.  Unable to stop ${PROJ_NAME}."
+            return 65
         fi
     else
         echo "A project name is required to stop a project.  Use '${PROGRAM_NAME} help stop' for help with the stop command."
+        return 64
     fi
 }
 

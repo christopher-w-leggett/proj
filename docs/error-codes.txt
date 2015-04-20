@@ -1,0 +1,20 @@
+Common:
+64 = Project name is required
+65 = Project doesn't exist
+66 = Project not tracked by proj
+67 = Invalid option
+68 = Option ? requires an argument
+69 = PROJ_PROJECTS_HOME environment variable is not set
+
+Init:
+80 = Project already exists
+
+Start:
+80 = Project doesn't have a start script
+
+Stop:
+80 = Project doesn't have a stop script
+
+Setup-AEM:
+80 = No AEM jar provided
+81 = AEM instance already exists

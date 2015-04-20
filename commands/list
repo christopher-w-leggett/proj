@@ -5,6 +5,7 @@ command_list(){
         find ${PROJ_PROJECTS_HOME} -mindepth 1 -maxdepth 1 -type d -exec test -d {}/.proj \; -printf '%f\n'
     else
         echo "The PROJ_PROJECTS_HOME environment variable is not set.  Please set this to your projects root directory to list projects."
+        return 69
     fi
 }
 

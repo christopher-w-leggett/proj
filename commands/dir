@@ -11,9 +11,11 @@ command_dir(){
                 echo ${PROJ_DIR}
             else
                 echo "The ${PROJ_NAME} project appears to be located at ${PROJ_DIR}, but is not currently tracked by proj."
+                return 66
             fi
         else
             echo "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}."
+            return 65
         fi
     else
         echo ${PROJ_PROJECTS_HOME}

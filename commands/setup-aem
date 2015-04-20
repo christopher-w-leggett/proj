@@ -21,7 +21,7 @@ _setup_aem(){
     done
     if [ -d ${PROJ_DIR}/sites/${INSTANCE_TYPE} ]; then
         echo "An ${INSTANCE_TYPE} AEM instance already exists."
-        return 64
+        return 81
     fi
 
     local RUNMODES=${INSTANCE_TYPE}
@@ -128,11 +128,11 @@ command_setup-aem(){
                 ;;
             \?)
                 echo "Invalid option: -${OPTARG}" >&2
-                exit 1
+                return 67
                 ;;
             \:)
                 echo "Option -${OPTARG} requires an argument." >&2
-                exit 1
+                return 68
                 ;;
         esac
     done
@@ -162,12 +162,15 @@ command_setup-aem(){
                 done
             else
                 echo "No AEM jar provided, unable to setup AEM."
+                return 80
             fi
         else
             echo "The ${PROJ_NAME} project doesn't exists in directory ${PROJ_DIR}.  Please use '${PROGRAM_NAME} init ${PROJ_NAME}' to initialize the project."
+            return 65
         fi
     else
         echo "A project name is required to setup AEM in the project directory.  Use '${PROGRAM_NAME} help setup-aem' for help with the setup-aem command."
+        return 64
     fi
 }
 
