@@ -28,3 +28,14 @@ command_init(){
     fi
 }
 
+command_init_help(){
+    echo "USAGE"
+    echo "   ${PROGRAM_NAME} init <project_name>"
+    echo ""
+    echo "DESCRIPTION"
+    echo "   The 'init' command can be used to initialize a new project.  This command will setup a default directory structure for a new project."
+}
+
+command_init_help_short(){
+    echo "Initializes a project's directory structure."
+}

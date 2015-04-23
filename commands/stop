@@ -23,3 +23,14 @@ command_stop(){
     fi
 }
 
+command_stop_help(){
+    echo "USAGE"
+    echo "   ${PROGRAM_NAME} stop <project_name>"
+    echo ""
+    echo "DESCRIPTION"
+    echo "   The 'stop' command is used to stop an existing project."
+}
+
+command_stop_help_short(){
+    echo "Stops a project using its stop script."
+}

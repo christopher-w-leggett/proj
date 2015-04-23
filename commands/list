@@ -9,3 +9,14 @@ command_list(){
     fi
 }
 
+command_list_help(){
+    echo "USAGE"
+    echo "   ${PROGRAM_NAME} list"
+    echo ""
+    echo "DESCRIPTION"
+    echo "   The 'list' command is used to list all projects under the PROJ_PROJECTS_HOME directory that are currently being managed by proj."
+}
+
+command_list_help_short(){
+    echo "Lists projects currently managed by proj."
+}

@@ -23,3 +23,14 @@ command_start(){
     fi
 }
 
+command_start_help(){
+    echo "USAGE"
+    echo "   ${PROGRAM_NAME} start <project_name>"
+    echo ""
+    echo "DESCRIPTION"
+    echo "   The 'start' command is used to start an existing project."
+}
+
+command_start_help_short(){
+    echo "Starts a project using its start script."
+}

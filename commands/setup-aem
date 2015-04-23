@@ -174,3 +174,14 @@ command_setup-aem(){
     fi
 }
 
+command_setup-aem_help(){
+    echo "USAGE"
+    echo "   ${PROGRAM_NAME} setup-aem <project_name> [-j <aem_jar>]"
+    echo ""
+    echo "DESCRIPTION"
+    echo "   The 'setup-aem' command is used to setup one or more AEM instances in an existing project."
+}
+
+command_setup-aem_help_short(){
+    echo "Sets up one or more AEM instances."
+}

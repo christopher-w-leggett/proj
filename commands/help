@@ -1,68 +1,34 @@
 #!/bin/bash
 
 command_help(){
-    local COMMAND=${1}
+    if [ $# -ne 0 ]; then
+        if [ $# -gt 1 ]; then
+            printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -
+        fi
 
-    case ${COMMAND} in
-        "")
-            echo "usage: ${PROGRAM_NAME} [-v] [-h] <command> [<command>...] [<args>]"
-            echo ""
-            echo "Commands:"
-            echo "   dir         Displays a project's directory."
-            echo "   init        Initializes a project's directory."
-            echo "   list        Lists projects currently managed by proj."
-            echo "   start       Starts a project using its start script."
-            echo "   stop        Stops a project using its stop script."
-            echo "   setup-aem   Sets up one or more AEM instances."
-            echo ""
-            echo "Use '${PROGRAM_NAME} help <command>' for help with a specific command."
-            echo ""
-            ;;
-        "dir")
-            echo "USAGE"
-            echo "   ${PROGRAM_NAME} dir [<project_name>]"
-            echo ""
-            echo "DESCRIPTION"
-            echo "   The 'dir' command can be used to output a project directory using the project's name.  If no project name is provided, the base project directory will be printed."
-            ;;
-        "init")
-            echo "USAGE"
-            echo "   ${PROGRAM_NAME} init <project_name>"
-            echo ""
-            echo "DESCRIPTION"
-            echo "   The 'init' command can be used to initialize a new project.  This command will setup a default directory structure for a new project."
-            ;;
-        "list")
-            echo "USAGE"
-            echo "   ${PROGRAM_NAME} list"
-            echo ""
-            echo "DESCRIPTION"
-            echo "   The 'list' command is used to list all projects under the PROJ_PROJECTS_HOME directory that are currently being managed by proj."
-            ;;
-        "start")
-            echo "USAGE"
-            echo "   ${PROGRAM_NAME} start <project_name>"
-            echo ""
-            echo "DESCRIPTION"
-            echo "   The 'start' command is used to start an existing project."
-            ;;
-        "stop")
-            echo "USAGE"
-            echo "   ${PROGRAM_NAME} stop <project_name>"
-            echo ""
-            echo "DESCRIPTION"
-            echo "   The 'stop' command is used to stop an existing project."
-            ;;
-        "setup-aem")
-            echo "USAGE"
-            echo "   ${PROGRAM_NAME} setup-aem <project_name> [-j <aem_jar>]"
-            echo ""
-            echo "DESCRIPTION"
-            echo "   The 'setup-aem' command is used to setup one or more AEM instances in an existing project."
-            ;;
-        *)
-            echo "no help currently exists for '${COMMAND}' command."
-            ;;
-    esac
+        for COMMAND_NAME in "$@"; do
+            command_${COMMAND_NAME}_help
+            if [ $# -gt 1 ]; then
+                printf '%*s' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -
+            fi
+        done
+    else
+        local MAX_COMMAND_NAME_LENGTH=0
+        for VALID_COMMAND in ${VALID_COMMANDS[@]}; do
+            if [ "${#VALID_COMMAND}" -gt "${MAX_COMMAND_NAME_LENGTH}" ]; then
+                MAX_COMMAND_NAME_LENGTH=${#VALID_COMMAND}
+            fi
+        done
+        ((MAX_COMMAND_NAME_LENGTH+=3))
+
+        echo "usage: ${PROGRAM_NAME} [-v] [help] <command> [<command>...] [<args>]"
+        echo ""
+        echo "Commands:"
+        for VALID_COMMAND in ${VALID_COMMANDS[@]}; do
+            printf "   %-${MAX_COMMAND_NAME_LENGTH}s $(command_${VALID_COMMAND}_help_short)\n" ${VALID_COMMAND}
+        done
+        echo ""
+        echo "Use '${PROGRAM_NAME} help <command> [<command>...]' for help with specific commands."
+        echo ""
+    fi
 }
-

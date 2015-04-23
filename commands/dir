@@ -22,3 +22,14 @@ command_dir(){
     fi
 }
 
+command_dir_help(){
+    echo "USAGE"
+    echo "   ${PROGRAM_NAME} dir [<project_name>]"
+    echo ""
+    echo "DESCRIPTION"
+    echo "   The 'dir' command can be used to output a project directory using the project's name.  If no project name is provided, the base project directory will be printed."
+}
+
+command_dir_help_short(){
+    echo "Displays a project's directory."
+}

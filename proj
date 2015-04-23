@@ -13,7 +13,8 @@ PROGRAM_VERSION=0.0.1
 # Include Commands #
 ####################
 COMMAND_DIR=${PROGRAM_DIR}/commands
-VALID_COMMANDS=(help dir init list start stop setup-aem)
+. "${COMMAND_DIR}/help"
+VALID_COMMANDS=(dir init list start stop setup-aem)
 for VALID_COMMAND in ${VALID_COMMANDS[@]}; do
     . "${COMMAND_DIR}/${VALID_COMMAND}"
 done
@@ -27,10 +28,6 @@ while getopts ":vh" opt; do
             echo "proj version ${PROGRAM_VERSION}"
             exit 0
             ;;
-        h)
-            command_help
-            exit $?
-            ;;
         \?)
             echo "Invalid option: -${OPTARG}" >&2
             exit 67
@@ -43,13 +40,19 @@ while getopts ":vh" opt; do
 done
 shift $((OPTIND-1))
 
+HAS_HELP_OPTION="n"
+if [ "${1}" == "help" ]; then
+    HAS_HELP_OPTION="y"
+    shift
+fi
+
 COMMAND_NAMES=()
 while [[ " ${VALID_COMMANDS[*]} " == *" ${1} "* ]]; do
     COMMAND_NAMES+=(${1})
     shift
 done
 
-if [ ${#COMMAND_NAMES[@]} -ne 0 ]; then
+if [[ ${HAS_HELP_OPTION} == "n" && ${#COMMAND_NAMES[@]} -ne 0 ]]; then
     for COMMAND_NAME in ${COMMAND_NAMES[@]}; do
         command_${COMMAND_NAME} $@ 2> /dev/null
 
@@ -59,6 +62,5 @@ if [ ${#COMMAND_NAMES[@]} -ne 0 ]; then
         fi
     done
 else
-    command_help
+    command_help ${COMMAND_NAMES[@]}
 fi
-
