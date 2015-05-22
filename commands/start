@@ -2,13 +2,28 @@
 
 command_start(){
     local PROJ_NAME=${1}
+    shift
+
+    AEM_INSTANCE_NAMES=(author)
+    if [ $# -gt 0 ]; then
+        AEM_INSTANCE_NAMES=("${@}")
+    fi
 
     if [[ -n ${PROJ_NAME} && "" != ${PROJ_NAME} ]]; then
         local PROJ_DIR=$(project_directory ${PROJ_NAME})
 
         if [ -d ${PROJ_DIR} ]; then
             if [ -f ${PROJ_DIR}/.proj/bin/start ]; then
-                ${PROJ_DIR}/.proj/bin/start
+                for AEM_INSTANCE_NAME in ${AEM_INSTANCE_NAMES[@]}; do
+                    if [ -f ${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/start ]; then
+                        echo "Starting the ${AEM_INSTANCE_NAME} AEM instance"
+                        ${PROJ_DIR}/.proj/bin/start ${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/start
+                    else
+                        echo "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAME} AEM instance.  Unable to start the ${AEM_INSTANCE_NAME} AEM instance."
+                    fi
+
+                    shift
+                done
             else
                 echo "The ${PROJ_NAME} project doesn't have a start script located at ${PROJ_DIR}/.proj/bin/start.  Unable to start ${PROJ_NAME}."
                 return 80
@@ -25,10 +40,10 @@ command_start(){
 
 command_start_help(){
     echo "USAGE"
-    echo "   ${PROGRAM_NAME} start <project_name>"
+    echo "   ${PROGRAM_NAME} start <project_name> [<aem_instance>...]"
     echo ""
     echo "DESCRIPTION"
-    echo "   The 'start' command is used to start an existing project."
+    echo "   The 'start' command is used to start an AEM instance for an existing project."
 }
 
 command_start_help_short(){
