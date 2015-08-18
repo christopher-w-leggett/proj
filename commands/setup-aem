@@ -110,11 +110,11 @@ _setup_aem(){
         done
     fi
 
-    sed -i "s/CQ_PORT=450[0-9]/CQ_PORT=${PORT}/g" ${INSTALL_DIR}/crx-quickstart/bin/start
+    sed -ie "s/CQ_PORT=450[0-9]/CQ_PORT=${PORT}/g" ${INSTALL_DIR}/crx-quickstart/bin/start
 
-    sed -i "s/CQ_RUNMODE='.*'/CQ_RUNMODE='${RUNMODES}'/g" ${INSTALL_DIR}/crx-quickstart/bin/start
+    sed -ie "s/CQ_RUNMODE='.*'/CQ_RUNMODE='${RUNMODES}'/g" ${INSTALL_DIR}/crx-quickstart/bin/start
 
-    sed -i "s/CQ_JVM_OPTS='\(.*\)'/CQ_JVM_OPTS='\1 -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${DEBUG_PORT}'/g" ${INSTALL_DIR}/crx-quickstart/bin/start
+    sed -ie "s/CQ_JVM_OPTS='\(.*\)'/CQ_JVM_OPTS='\1 -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${DEBUG_PORT}'/g" ${INSTALL_DIR}/crx-quickstart/bin/start
 }
 
 command_setup-aem(){
