@@ -12,12 +12,13 @@ _setup_aem(){
     local PACKAGES=()
 
     # Gather AEM instance details
-    local INSTANCE_TYPE_INPUT_MESSAGE="What type of AEM instance is this (author/publish)?"
+    local INSTANCE_TYPE_QUESTION="What type of AEM instance is this (author/publish)?"
+    local INSTANCE_TYPE_INPUT_MESSAGE=${INSTANCE_TYPE_QUESTION}
     while [[ "author" != ${INSTANCE_TYPE} && "publish" != ${INSTANCE_TYPE} ]]; do
         echo ${INSTANCE_TYPE_INPUT_MESSAGE}
         read INSTANCE_TYPE
 
-        INSTANCE_TYPE_INPUT_MESSAGE="I didn't quite get that.  ${INSTANCE_TYPE_INPUT_MESSAGE}"
+        INSTANCE_TYPE_INPUT_MESSAGE="I didn't quite get that.  ${INSTANCE_TYPE_QUESTION}"
     done
     if [ -d ${PROJ_DIR}/sites/${INSTANCE_TYPE} ]; then
         echo "An ${INSTANCE_TYPE} AEM instance already exists."
@@ -33,12 +34,13 @@ _setup_aem(){
         RUNMODES="${RUNMODES},${ADDITIONAL_RUNMODES}"
     fi
 
-    local INCLUDE_GEOMETRIXX_INPUT_MESSAGE="Would you like to include geometrixx content (y/n)?"
+    local INCLUDE_GEOMETRIXX_QUESTION="Would you like to include geometrixx content (y/n)?"
+    local INCLUDE_GEOMETRIXX_INPUT_MESSAGE=${INCLUDE_GEOMETRIXX_QUESTION}
     while [[ "y" != ${INCLUDE_GEOMETRIXX} && "n" != ${INCLUDE_GEOMETRIXX} ]]; do
         echo ${INCLUDE_GEOMETRIXX_INPUT_MESSAGE}
         read INCLUDE_GEOMETRIXX
 
-        INCLUDE_GEOMETRIXX_INPUT_MESSAGE="I didn't quite get that.  ${INCLUDE_GEOMETRIXX_INPUT_MESSAGE}"
+        INCLUDE_GEOMETRIXX_INPUT_MESSAGE="I didn't quite get that.  ${INCLUDE_GEOMETRIXX_QUESTION}"
     done
     if [ "y" != ${INCLUDE_GEOMETRIXX} ]; then
         RUNMODES="${RUNMODES},nosamplecontent"
@@ -152,12 +154,13 @@ command_setup-aem(){
                     _setup_aem ${AEM_JAR_PATH} ${PROJ_DIR}
 
                     SETUP_AEM=""
-                    local SETUP_AEM_INPUT_MESSAGE="Would you like to setup another AEM instance (y/n)?"
+                    local SETUP_AEM_QUESTION="Would you like to setup another AEM instance (y/n)?"
+                    local SETUP_AEM_INPUT_MESSAGE=${SETUP_AEM_QUESTION}
                     while [[ "y" != ${SETUP_AEM} && "n" != ${SETUP_AEM} ]]; do
                         echo ${SETUP_AEM_INPUT_MESSAGE}
                         read SETUP_AEM
 
-                        SETUP_AEM_INPUT_MESSAGE="I didn't quite get that.  ${SETUP_AEM_INPUT_MESSAGE}"
+                        SETUP_AEM_INPUT_MESSAGE="I didn't quite get that.  ${SETUP_AEM_QUESTION}"
                     done
                 done
             else
