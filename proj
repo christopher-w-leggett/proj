@@ -1,8 +1,8 @@
 #!/bin/bash
 
-PROGRAM_NAME=$(basename $0)
+PROGRAM_NAME=$(basename "$0")
 PROGRAM_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-PROGRAM_VERSION=0.0.1
+PROGRAM_VERSION="0.0.1"
 
 #####################
 # Include Utilities #
@@ -12,7 +12,7 @@ PROGRAM_VERSION=0.0.1
 ####################
 # Include Commands #
 ####################
-COMMAND_DIR=${PROGRAM_DIR}/commands
+COMMAND_DIR="${PROGRAM_DIR}/commands"
 . "${COMMAND_DIR}/help"
 VALID_COMMANDS=(dir init list start stop setup-aem)
 for VALID_COMMAND in ${VALID_COMMANDS[@]}; do
@@ -48,12 +48,13 @@ fi
 
 COMMAND_NAMES=()
 while [[ " ${VALID_COMMANDS[*]} " == *" ${1} "* ]]; do
-    COMMAND_NAMES+=(${1})
+    COMMAND_NAMES+=("${1}")
     shift
 done
 
-if [[ ${HAS_HELP_OPTION} == "n" && ${#COMMAND_NAMES[@]} -ne 0 ]]; then
+if [[ "${HAS_HELP_OPTION}" == "n" && ${#COMMAND_NAMES[@]} -ne 0 ]]; then
     for COMMAND_NAME in ${COMMAND_NAMES[@]}; do
+        # TODO: Passing expanded arguments into command has issues with command parameters containing spaces.
         command_${COMMAND_NAME} $@ 2> /dev/null
 
         COMMAND_STATUS=$?

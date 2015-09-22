@@ -25,7 +25,7 @@ command_help(){
         echo ""
         echo "Commands:"
         for VALID_COMMAND in ${VALID_COMMANDS[@]}; do
-            printf "   %-${MAX_COMMAND_NAME_LENGTH}s $(command_${VALID_COMMAND}_help_short)\n" ${VALID_COMMAND}
+            printf "   %-${MAX_COMMAND_NAME_LENGTH}s $(command_${VALID_COMMAND}_help_short)\n" "${VALID_COMMAND}"
         done
         echo ""
         echo "Use '${PROGRAM_NAME} help <command> [<command>...]' for help with specific commands."

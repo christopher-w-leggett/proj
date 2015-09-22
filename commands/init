@@ -1,21 +1,21 @@
 #!/bin/bash
 
 command_init(){
-    local PROJ_NAME=${1}
+    local PROJ_NAME="${1}"
 
-    if [[ -n ${PROJ_NAME} && "" != ${PROJ_NAME} ]]; then
-        local PROJ_DIR=$(project_directory ${PROJ_NAME})
+    if [[ -n "${PROJ_NAME}" && "" != "${PROJ_NAME}" ]]; then
+        local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
-        if [ ! -d ${PROJ_DIR} ]; then
+        if [ ! -d "${PROJ_DIR}" ]; then
             echo "Creating ${PROJ_DIR}."
-            mkdir ${PROJ_DIR}
-            cp -r ${PROGRAM_DIR}/.proj ${PROJ_DIR}/.proj
+            mkdir "${PROJ_DIR}"
+            cp -r "${PROGRAM_DIR}/.proj" "${PROJ_DIR}/.proj"
             echo "Creating ${PROJ_DIR}/code."
-            mkdir ${PROJ_DIR}/code
+            mkdir "${PROJ_DIR}/code"
             echo "Creating ${PROJ_DIR}/dependencies."
-            mkdir ${PROJ_DIR}/dependencies
+            mkdir "${PROJ_DIR}/dependencies"
             echo "Creating ${PROJ_DIR}/documents."
-            mkdir ${PROJ_DIR}/documents
+            mkdir "${PROJ_DIR}/documents"
 
             echo "Project structure created at ${PROJ_DIR}"
         else

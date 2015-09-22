@@ -1,7 +1,7 @@
 #!/bin/bash
 
-AEM_START_SCRIPT=${1}
+AEM_START_SCRIPT="${1}"
 
 #Add any project specific pre start commands here
-${AEM_START_SCRIPT}
+"${AEM_START_SCRIPT}"
 #Add any project specific post start commands here

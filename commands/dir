@@ -1,14 +1,14 @@
 #!/bin/bash
 
 command_dir(){
-    local PROJ_NAME=${1}
+    local PROJ_NAME="${1}"
 
-    if [[ -n ${PROJ_NAME} && "" != ${PROJ_NAME} ]]; then
-        local PROJ_DIR=$(project_directory ${PROJ_NAME})
+    if [[ -n "${PROJ_NAME}" && "" != "${PROJ_NAME}" ]]; then
+        local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
-        if [ -d ${PROJ_DIR} ]; then
-            if [ -d ${PROJ_DIR}/.proj ]; then
-                echo ${PROJ_DIR}
+        if [ -d "${PROJ_DIR}" ]; then
+            if [ -d "${PROJ_DIR}/.proj" ]; then
+                echo "${PROJ_DIR}"
             else
                 echo "The ${PROJ_NAME} project appears to be located at ${PROJ_DIR}, but is not currently tracked by proj."
                 return 66
@@ -18,7 +18,7 @@ command_dir(){
             return 65
         fi
     else
-        echo ${PROJ_PROJECTS_HOME}
+        echo "${PROJ_PROJECTS_HOME}"
     fi
 }
 

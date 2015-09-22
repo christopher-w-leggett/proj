@@ -1,7 +1,7 @@
 #!/bin/bash
 
 command_stop(){
-    local PROJ_NAME=${1}
+    local PROJ_NAME="${1}"
     shift
 
     AEM_INSTANCE_NAMES=(author)
@@ -9,15 +9,15 @@ command_stop(){
         AEM_INSTANCE_NAMES=("${@}")
     fi
 
-    if [[ -n ${PROJ_NAME} && "" != ${PROJ_NAME} ]]; then
-        local PROJ_DIR=$(project_directory ${PROJ_NAME})
+    if [[ -n "${PROJ_NAME}" && "" != "${PROJ_NAME}" ]]; then
+        local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
-        if [ -d ${PROJ_DIR} ]; then
-            if [ -f ${PROJ_DIR}/.proj/bin/stop ]; then
+        if [ -d "${PROJ_DIR}" ]; then
+            if [ -f "${PROJ_DIR}/.proj/bin/stop" ]; then
                 for AEM_INSTANCE_NAME in ${AEM_INSTANCE_NAMES[@]}; do
-                    if [ -f ${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop ]; then
+                    if [ -f "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop" ]; then
                         echo "Stopping the ${AEM_INSTANCE_NAME} AEM instance"
-                        ${PROJ_DIR}/.proj/bin/stop ${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop
+                        "${PROJ_DIR}/.proj/bin/stop" "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop"
                     else
                         echo "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAME} AEM instance.  Unable to stop the ${AEM_INSTANCE_NAME} AEM instance."
                     fi
