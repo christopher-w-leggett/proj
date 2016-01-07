@@ -1,0 +1,51 @@
+#!/bin/bash
+
+command_profile(){
+    local PROJ_NAME="${1}"
+    shift
+
+    local AEM_INSTANCE_NAME="author"
+    if [ $# -gt 0 ]; then
+        AEM_INSTANCE_NAME="${1}"
+    fi
+
+    if [[ -n "${PROJ_NAME}" && "" != "${PROJ_NAME}" ]]; then
+        local PROJ_DIR=$(project_directory "${PROJ_NAME}")
+
+        if [ -d "${PROJ_DIR}" ]; then
+            local CQ_PID_FILE="${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"
+            local AEM_RUNNING="n"
+            if [ -f "${CQ_PID_FILE}" ]; then
+                local CQ_PID="`cat ${CQ_PID_FILE}`"
+                if [ "$(jps | grep ${CQ_PID} | grep quickstart | awk '{print $1}')" == "${CQ_PID}" ]; then
+                    AEM_RUNNING="y"
+                fi
+            fi
+
+            if [ "${AEM_RUNNING}" == "y" ]; then
+                jvisualvm --openpid `cat ${CQ_PID_FILE}` &
+            else
+                echo "The ${AEM_INSTANCE_NAME} instance for project ${PROJ_NAME} is not running.  Unable to profile ${PROJ_NAME}."
+                return 65
+            fi
+        else
+            echo "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}.  Unable to profile ${PROJ_NAME}."
+            return 65
+        fi
+    else
+        echo "A project name is required to profile a project.  Use '${PROGRAM_NAME} help profile' for help with the profile command."
+        return 64
+    fi
+}
+
+command_profile_help(){
+    echo "USAGE"
+    echo "   ${PROGRAM_NAME} profile <project_name> [<aem_instance>]"
+    echo ""
+    echo "DESCRIPTION"
+    echo "   The 'profile' command can be used to profile a project using the java provided jvisualvm.  If no aem_instance is provided, the default author instance is used."
+}
+
+command_profile_help_short(){
+    echo "Opens jvisualvm connected to the pid AEM is currently running on."
+}
