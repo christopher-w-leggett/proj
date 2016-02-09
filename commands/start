@@ -4,9 +4,22 @@ command_start(){
     local PROJ_NAME="${1}"
     shift
 
-    AEM_INSTANCE_NAMES=(author)
+    local AEM_INSTANCE_NAMES=(author)
+    local AEM_INSTANCE_PORTS=("")
     if [ $# -gt 0 ]; then
-        AEM_INSTANCE_NAMES=("${@}")
+        AEM_INSTANCE_NAMES=()
+        AEM_INSTANCE_PORTS=()
+        while [[ "${1}" == "author" || "${1}" == "publish" ]]; do
+            AEM_INSTANCE_NAMES+=("${1}")
+            shift
+
+            if [[ "${1}" != "author" && "${1}" != "publish" ]]; then
+                AEM_INSTANCE_PORTS+=("${1}")
+                shift
+            else
+                AEM_INSTANCE_PORTS+=("")
+            fi
+        done
     fi
 
     if [[ -n "${PROJ_NAME}" && "" != "${PROJ_NAME}" ]]; then
@@ -14,12 +27,16 @@ command_start(){
 
         if [ -d "${PROJ_DIR}" ]; then
             if [ -f "${PROJ_DIR}/.proj/bin/start" ]; then
-                for AEM_INSTANCE_NAME in ${AEM_INSTANCE_NAMES[@]}; do
-                    if [ -f "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/start" ]; then
-                        echo "Starting the ${AEM_INSTANCE_NAME} AEM instance"
-                        "${PROJ_DIR}/.proj/bin/start" "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/start"
+                for i in ${!AEM_INSTANCE_NAMES[@]}; do
+                    if [ -f "${PROJ_DIR}/sites/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" ]; then
+                        if [[ -z "${AEM_INSTANCE_PORTS[$i]}" || "" == "${AEM_INSTANCE_PORTS[$i]}" ]]; then
+                            echo "Starting the ${AEM_INSTANCE_NAMES[$i]} AEM instance on its configured port"
+                        else
+                            echo "Starting the ${AEM_INSTANCE_NAMES[$i]} AEM instance on port ${AEM_INSTANCE_PORTS[$i]}"
+                        fi
+                        CQ_PORT="${AEM_INSTANCE_PORTS[$i]}" "${PROJ_DIR}/.proj/bin/start" "${PROJ_DIR}/sites/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start"
                     else
-                        echo "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAME} AEM instance.  Unable to start the ${AEM_INSTANCE_NAME} AEM instance."
+                        echo "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAMES[$i]} AEM instance.  Unable to start the ${AEM_INSTANCE_NAMES[$i]} AEM instance."
                     fi
 
                     shift
@@ -40,10 +57,10 @@ command_start(){
 
 command_start_help(){
     echo "USAGE"
-    echo "   ${PROGRAM_NAME} start <project_name> [<aem_instance>...]"
+    echo "   ${PROGRAM_NAME} start <project_name> [(<aem_instance> [<port>])...]"
     echo ""
     echo "DESCRIPTION"
-    echo "   The 'start' command is used to start an AEM instance for an existing project."
+    echo "   The 'start' command is used to start an AEM instance for an existing project.  By default the author instance will be started on the configured port."
 }
 
 command_start_help_short(){
