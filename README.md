@@ -13,12 +13,12 @@ Setup for Proj is very simply as it is simply a collection of bash scripts.  The
 ## Commands
 As mentioned earlier Proj is just a collection of bash scripts that are organized into separate commands.  These commands are listed below along with a short description of what each does.  For more detailed information about a specific command please run `proj help <command>`.
 
-| Command   | Description |
-| --------- | ----------- |
-| dir       | Displays a project's directory. |
-| init      | Initializes a project's directory structure. |
-| list      | Lists projects currently managed by proj. |
-| start     | Starts a project using its start script. |
-| stop      | Stops a project using its stop script. |
-| setup-aem | Sets up one or more AEM instances. |
-| profile   | Opens jvisualvm connected to the pid AEM is currently running on. |
+| Command                                                    | Description                                                       |
+| ---------------------------------------------------------- | ----------------------------------------------------------------- |
+| `proj dir [<project_name>]`                                | Displays a project's directory.                                   |
+| `proj init <project_name>`                                 | Initializes a project's directory structure.                      |
+| `proj list`                                                | Lists projects currently managed by proj.                         |
+| `proj start <project_name> [(<aem_instance> [<port>])...]` | Starts a project using its start script.                          |
+| `proj stop <project_name> [<aem_instance>...]`             | Stops a project using its stop script.                            |
+| `proj setup-aem <project_name> [-j <aem_jar>]`             | Sets up one or more AEM instances.                                |
+| `proj profile <project_name> [<aem_instance>]`             | Opens jvisualvm connected to the pid AEM is currently running on. |
