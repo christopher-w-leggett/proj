@@ -4,3 +4,16 @@ project_directory(){
     echo "${PROJ_PROJECTS_HOME}/${1}"
 }
 
+wait_for(){
+    local i=1
+    local spinner="/-\|"
+    local displayed=""
+    while "$@"; do
+        printf "\b${spinner:i++%${#spinner}:1}"
+        displayed="true"
+        sleep 0.5
+    done
+    if [ "true" == "${displayed}" ]; then
+        printf "\b"
+    fi
+}

@@ -19,12 +19,7 @@ command_stop(){
                         echo "Stopping the ${AEM_INSTANCE_NAME} AEM instance"
                         "${PROJ_DIR}/.proj/bin/stop" "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop"
                         local PID=`cat "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"`
-                        local i=1
-                        local spinner="/-\|"
-                        while kill -0 "${PID}"; do
-                            printf "\b${spinner:i++%${#spinner}:1}"
-                            sleep 0.5
-                        done
+                        wait_for kill -0 "${PID}"
                     else
                         echo "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAME} AEM instance.  Unable to stop the ${AEM_INSTANCE_NAME} AEM instance."
                     fi
