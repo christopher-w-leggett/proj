@@ -8,8 +8,14 @@ wait_for(){
     local i=1
     local spinner="/-\|"
     local displayed=""
+    local stop=""
+
+    trap 'stop="true"' INT
 
     while "$@"; do
+        if [ "true" == "${stop}" ]; then
+            break;
+        fi
         if [ "true" == "${displayed}" ]; then
             printf "\b"
         fi
@@ -17,6 +23,8 @@ wait_for(){
         displayed="true"
         sleep 0.5
     done
+
+    trap - INT
 
     if [ "true" == "${displayed}" ]; then
         printf "\b \b"
