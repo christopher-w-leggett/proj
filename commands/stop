@@ -16,10 +16,11 @@ command_stop(){
             if [ -f "${PROJ_DIR}/.proj/bin/stop" ]; then
                 for AEM_INSTANCE_NAME in ${AEM_INSTANCE_NAMES[@]}; do
                     if [ -f "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop" ]; then
-                        echo "Stopping the ${AEM_INSTANCE_NAME} AEM instance"
+                        printf "Stopping the ${AEM_INSTANCE_NAME} AEM instance "
                         "${PROJ_DIR}/.proj/bin/stop" "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop"
                         local PID=`cat "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"`
                         wait_for kill -0 "${PID}"
+                        printf "\n"
                     else
                         echo "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAME} AEM instance.  Unable to stop the ${AEM_INSTANCE_NAME} AEM instance."
                     fi
