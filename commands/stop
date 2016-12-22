@@ -13,28 +13,31 @@ command_stop(){
         local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
         if [ -d "${PROJ_DIR}" ]; then
-            if [ -f "${PROJ_DIR}/.proj/bin/stop" ]; then
-                for AEM_INSTANCE_NAME in ${AEM_INSTANCE_NAMES[@]}; do
-                    if [ -f "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop" ]; then
-                        printf "Stopping the ${AEM_INSTANCE_NAME} AEM instance "
-                        "${PROJ_DIR}/.proj/bin/stop" "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop"
-                        local PID=`cat "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"`
-                        wait_for kill -0 "${PID}"
-                        if kill -0 "${PID}"; then
-                            printf "\xE2\x9D\x8C\n"
-                        else
-                            printf "\xE2\x9C\x85\n"
-                        fi
-                    else
-                        echo "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAME} AEM instance.  Unable to stop the ${AEM_INSTANCE_NAME} AEM instance."
+            for AEM_INSTANCE_NAME in ${AEM_INSTANCE_NAMES[@]}; do
+                if [ -f "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop" ]; then
+                    if [ -f "${PROJ_DIR}/.proj/bin/pre-stop" ]; then
+                        "${PROJ_DIR}/.proj/bin/pre-stop" "${AEM_INSTANCE_NAME}"
                     fi
 
-                    shift
-                done
-            else
-                echo "The ${PROJ_NAME} project doesn't have a stop script located at ${PROJ_DIR}/.proj/bin/stop.  Unable to stop ${PROJ_NAME}."
-                return 80
-            fi
+                    printf "Stopping the ${AEM_INSTANCE_NAME} AEM instance "
+                    "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop" > /dev/null 2>&1
+                    local PID=`cat "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"`
+                    wait_for kill -0 "${PID}"
+                    if kill -0 "${PID}"; then
+                        printf "\xE2\x9D\x8C\n"
+                    else
+                        printf "\xE2\x9C\x85\n"
+                    fi
+
+                    if [ -f "${PROJ_DIR}/.proj/bin/post-stop" ]; then
+                        "${PROJ_DIR}/.proj/bin/post-stop" "${AEM_INSTANCE_NAME}"
+                    fi
+                else
+                    echo "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAME} AEM instance.  Unable to stop the ${AEM_INSTANCE_NAME} AEM instance."
+                fi
+
+                shift
+            done
         else
             echo "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}.  Unable to stop ${PROJ_NAME}."
             return 65

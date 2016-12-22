@@ -26,25 +26,29 @@ command_start(){
         local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
         if [ -d "${PROJ_DIR}" ]; then
-            if [ -f "${PROJ_DIR}/.proj/bin/start" ]; then
-                for i in ${!AEM_INSTANCE_NAMES[@]}; do
-                    if [ -f "${PROJ_DIR}/sites/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" ]; then
-                        if [[ -z "${AEM_INSTANCE_PORTS[$i]}" || "" == "${AEM_INSTANCE_PORTS[$i]}" ]]; then
-                            echo "Starting the ${AEM_INSTANCE_NAMES[$i]} AEM instance on its configured port"
-                        else
-                            echo "Starting the ${AEM_INSTANCE_NAMES[$i]} AEM instance on port ${AEM_INSTANCE_PORTS[$i]}"
-                        fi
-                        CQ_PORT="${AEM_INSTANCE_PORTS[$i]}" "${PROJ_DIR}/.proj/bin/start" "${PROJ_DIR}/sites/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start"
-                    else
-                        echo "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAMES[$i]} AEM instance.  Unable to start the ${AEM_INSTANCE_NAMES[$i]} AEM instance."
+            for i in ${!AEM_INSTANCE_NAMES[@]}; do
+                if [ -f "${PROJ_DIR}/sites/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" ]; then
+                    if [ -f "${PROJ_DIR}/.proj/bin/pre-start" ]; then
+                        "${PROJ_DIR}/.proj/bin/pre-start" "${AEM_INSTANCE_NAMES[$i]}"
                     fi
 
-                    shift
-                done
-            else
-                echo "The ${PROJ_NAME} project doesn't have a start script located at ${PROJ_DIR}/.proj/bin/start.  Unable to start ${PROJ_NAME}."
-                return 80
-            fi
+                    if [[ -z "${AEM_INSTANCE_PORTS[$i]}" || "" == "${AEM_INSTANCE_PORTS[$i]}" ]]; then
+                        echo "Starting the ${AEM_INSTANCE_NAMES[$i]} AEM instance on its configured port"
+                    else
+                        echo "Starting the ${AEM_INSTANCE_NAMES[$i]} AEM instance on port ${AEM_INSTANCE_PORTS[$i]}"
+                    fi
+                    CQ_PORT="${AEM_INSTANCE_PORTS[$i]}" "${PROJ_DIR}/sites/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" > /dev/null 2>&1
+
+                    #TODO: Wait for AEM to start before running post-start scripts.
+                    if [ -f "${PROJ_DIR}/.proj/bin/post-start" ]; then
+                        "${PROJ_DIR}/.proj/bin/post-start" "${AEM_INSTANCE_NAMES[$i]}"
+                    fi
+                else
+                    echo "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAMES[$i]} AEM instance.  Unable to start the ${AEM_INSTANCE_NAMES[$i]} AEM instance."
+                fi
+
+                shift
+            done
         else
             echo "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}.  Unable to start ${PROJ_NAME}."
             return 65

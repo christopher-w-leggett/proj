@@ -1,5 +1,0 @@
-#!/bin/bash
-
-#Add any project specific pre stop commands here
-"$@" > /dev/null 2>&1
-#Add any project specific post stop commands here

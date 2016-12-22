@@ -1,0 +1,4 @@
+#!/bin/bash
+
+AEM_INSTANCE_NAME="${1}"
+#Add any project specific post start commands here
