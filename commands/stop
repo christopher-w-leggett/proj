@@ -50,7 +50,7 @@ command_stop(){
 
 command_stop_help(){
     echo "USAGE"
-    echo "   ${PROGRAM_NAME} stop <project_name> [<aem_instance>...]"
+    echo "   ${PROGRAM_NAME} stop <project_name> [<aem_instance_name>...]"
     echo ""
     echo "DESCRIPTION"
     echo "   The 'stop' command is used to stop an AEM instance for an existing project."

@@ -6,12 +6,26 @@ _setup_aem(){
     local PROJ_DIR="${2}"
 
     # Grab parameter values TODO: Implement this
+    local INSTANCE_NAME=""
     local INSTANCE_TYPE=""
     local ADDITIONAL_RUNMODES=""
     local INCLUDE_GEOMETRIXX=""
     local PACKAGES=()
 
     # Gather AEM instance details
+    local INSTANCE_NAME_QUESTION="Please name this AEM instance:"
+    local INSTANCE_NAME_INPUT_MESSAGE="${INSTANCE_NAME_QUESTION}"
+    while echo "${INSTANCE_NAME}" | grep '^[0-9]*$' >/dev/null; do
+        echo "${INSTANCE_NAME_INPUT_MESSAGE}"
+        read INSTANCE_NAME
+
+        INSTANCE_NAME_INPUT_MESSAGE="Instance name must contain letters.  ${INSTANCE_NAME_QUESTION}"
+    done
+    if [ -d "${PROJ_DIR}/sites/${INSTANCE_NAME}" ]; then
+        echo "The ${INSTANCE_NAME} AEM instance already exists."
+        return 81
+    fi
+
     local INSTANCE_TYPE_QUESTION="What type of AEM instance is this (author/publish)?"
     local INSTANCE_TYPE_INPUT_MESSAGE="${INSTANCE_TYPE_QUESTION}"
     while [[ "author" != "${INSTANCE_TYPE}" && "publish" != "${INSTANCE_TYPE}" ]]; do
@@ -20,10 +34,6 @@ _setup_aem(){
 
         INSTANCE_TYPE_INPUT_MESSAGE="I didn't quite get that.  ${INSTANCE_TYPE_QUESTION}"
     done
-    if [ -d "${PROJ_DIR}/sites/${INSTANCE_TYPE}" ]; then
-        echo "An ${INSTANCE_TYPE} AEM instance already exists."
-        return 81
-    fi
 
     local RUNMODES="${INSTANCE_TYPE}"
     if [[ -z "${ADDITIONAL_RUNMODES}" || "" == "${ADDITIONAL_RUNMODES}" ]]; then
@@ -82,7 +92,7 @@ _setup_aem(){
         echo "Creating ${PROJ_DIR}/sites."
         mkdir "${PROJ_DIR}/sites"
     fi
-    local INSTALL_DIR="${PROJ_DIR}/sites/${INSTANCE_TYPE}"
+    local INSTALL_DIR="${PROJ_DIR}/sites/${INSTANCE_NAME}"
     if [ ! -d "${INSTALL_DIR}" ]; then
         echo "Creating ${INSTALL_DIR}."
         mkdir "${INSTALL_DIR}"

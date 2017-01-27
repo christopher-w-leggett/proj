@@ -9,11 +9,11 @@ command_start(){
     if [ $# -gt 0 ]; then
         AEM_INSTANCE_NAMES=()
         AEM_INSTANCE_PORTS=()
-        while [[ "${1}" == "author" || "${1}" == "publish" ]]; do
+        while echo "${1}" | grep '[^0-9]' >/dev/null; do
             AEM_INSTANCE_NAMES+=("${1}")
             shift
 
-            if [[ "${1}" != "author" && "${1}" != "publish" ]]; then
+            if echo "${1}" | grep '^[0-9]\+$' >/dev/null; then
                 AEM_INSTANCE_PORTS+=("${1}")
                 shift
             else
@@ -61,7 +61,7 @@ command_start(){
 
 command_start_help(){
     echo "USAGE"
-    echo "   ${PROGRAM_NAME} start <project_name> [(<aem_instance> [<port>])...]"
+    echo "   ${PROGRAM_NAME} start <project_name> [(<aem_instance_name> [<port>])...]"
     echo ""
     echo "DESCRIPTION"
     echo "   The 'start' command is used to start an AEM instance for an existing project.  By default the author instance will be started on the configured port."
