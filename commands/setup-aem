@@ -21,7 +21,7 @@ _setup_aem(){
 
         INSTANCE_NAME_INPUT_MESSAGE="Instance name must contain letters.  ${INSTANCE_NAME_QUESTION}"
     done
-    if [ -d "${PROJ_DIR}/sites/${INSTANCE_NAME}" ]; then
+    if [ -d "${PROJ_DIR}/sites/aem/${INSTANCE_NAME}" ]; then
         echo "The ${INSTANCE_NAME} AEM instance already exists."
         return 81
     fi
@@ -92,7 +92,11 @@ _setup_aem(){
         echo "Creating ${PROJ_DIR}/sites."
         mkdir "${PROJ_DIR}/sites"
     fi
-    local INSTALL_DIR="${PROJ_DIR}/sites/${INSTANCE_NAME}"
+    if [ ! -d "${PROJ_DIR}/sites/aem" ]; then
+        echo "Creating ${PROJ_DIR}/sites/aem."
+        mkdir "${PROJ_DIR}/sites/aem"
+    fi
+    local INSTALL_DIR="${PROJ_DIR}/sites/aem/${INSTANCE_NAME}"
     if [ ! -d "${INSTALL_DIR}" ]; then
         echo "Creating ${INSTALL_DIR}."
         mkdir "${INSTALL_DIR}"

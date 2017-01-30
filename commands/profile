@@ -13,7 +13,7 @@ command_profile(){
         local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
         if [ -d "${PROJ_DIR}" ]; then
-            local CQ_PID_FILE="${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"
+            local CQ_PID_FILE="${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"
             local AEM_RUNNING="n"
             if [ -f "${CQ_PID_FILE}" ]; then
                 local CQ_PID="`cat ${CQ_PID_FILE}`"

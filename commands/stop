@@ -14,14 +14,14 @@ command_stop(){
 
         if [ -d "${PROJ_DIR}" ]; then
             for AEM_INSTANCE_NAME in ${AEM_INSTANCE_NAMES[@]}; do
-                if [ -f "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop" ]; then
+                if [ -f "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop" ]; then
                     if [ -f "${PROJ_DIR}/.proj/bin/pre-stop" ]; then
                         "${PROJ_DIR}/.proj/bin/pre-stop" "${AEM_INSTANCE_NAME}"
                     fi
 
                     printf "Stopping the ${AEM_INSTANCE_NAME} AEM instance "
-                    "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop" > /dev/null 2>&1
-                    local PID=`cat "${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"`
+                    "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop" > /dev/null 2>&1
+                    local PID=`cat "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"`
                     wait_for kill -0 "${PID}"
                     if kill -0 "${PID}"; then
                         printf "\xE2\x9D\x8C\n"

@@ -27,7 +27,7 @@ command_start(){
 
         if [ -d "${PROJ_DIR}" ]; then
             for i in ${!AEM_INSTANCE_NAMES[@]}; do
-                if [ -f "${PROJ_DIR}/sites/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" ]; then
+                if [ -f "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" ]; then
                     if [ -f "${PROJ_DIR}/.proj/bin/pre-start" ]; then
                         "${PROJ_DIR}/.proj/bin/pre-start" "${AEM_INSTANCE_NAMES[$i]}"
                     fi
@@ -37,7 +37,7 @@ command_start(){
                     else
                         echo "Starting the ${AEM_INSTANCE_NAMES[$i]} AEM instance on port ${AEM_INSTANCE_PORTS[$i]}"
                     fi
-                    CQ_PORT="${AEM_INSTANCE_PORTS[$i]}" "${PROJ_DIR}/sites/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" > /dev/null 2>&1
+                    CQ_PORT="${AEM_INSTANCE_PORTS[$i]}" "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" > /dev/null 2>&1
 
                     #TODO: Wait for AEM to start before running post-start scripts.
                     if [ -f "${PROJ_DIR}/.proj/bin/post-start" ]; then
