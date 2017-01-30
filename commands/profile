@@ -40,7 +40,7 @@ command_profile(){
 
 command_profile_help(){
     echo "USAGE"
-    echo "   ${PROGRAM_NAME} profile <project_name> [<aem_instance>]"
+    echo "   ${PROGRAM_NAME} profile <project_name> [<aem_instance_name>]"
     echo ""
     echo "DESCRIPTION"
     echo "   The 'profile' command can be used to profile a project using the java provided jvisualvm.  If no aem_instance is provided, the default author instance is used."
