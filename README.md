@@ -21,4 +21,5 @@ As mentioned earlier Proj is just a collection of bash scripts that are organize
 | `proj start <project_name> [(<aem_instance_name> [<port>])...]` | Starts a project using its start script.                          |
 | `proj stop <project_name> [<aem_instance_name>...]`             | Stops a project using its stop script.                            |
 | `proj setup-aem <project_name> [-j <aem_jar>]`                  | Sets up one or more AEM instances.                                |
+| `proj setup-dispatcher <project_name>`                          | Configures Apache Dispatcher for one or more AEM instances.       |
 | `proj profile <project_name> [<aem_instance_name>]`             | Opens jvisualvm connected to the pid AEM is currently running on. |

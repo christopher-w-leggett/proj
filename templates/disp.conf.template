@@ -1,0 +1,80 @@
+#Load required modules
+<IfModule !disp_apache2.c>
+    LoadModule dispatcher_module <disp-module>
+</IfModule>
+
+#Configure virtualhost for aem instance.
+<VirtualHost *:80>
+    Define site_domain <site-domain>
+    Define project_dir <project-dir>
+    Define apache_dir ${project_dir}/sites/apache/<site-name>
+    Define doc_root ${apache_dir}/www
+    Define dispatcher_config ${apache_dir}/conf/dispatcher.any
+    Define dispatcher_log ${apache_dir}/log
+
+    DocumentRoot ${doc_root}
+    ServerName ${site_domain}
+
+    <IfModule disp_apache2.c>
+        # location of the configuration file. eg: 'conf/dispatcher.any'
+        DispatcherConfig ${dispatcher_config}
+
+        # location of the dispatcher log file. eg: 'logs/dispatcher.log'
+        DispatcherLog ${dispatcher_log)
+
+        # log level for the dispatcher log, can be either specified
+        # as a string or an integer (in parentheses)
+        # error(0): Errors
+        # warn(1):  Warnings
+        # info(2):  Infos
+        # debug(3): Debug
+        DispatcherLogLevel warn
+
+        # if turned on, the dispatcher looks like a normal module
+        DispatcherNoServerHeader 0
+
+        # if turned on, request to / are not handled by the dispatcher
+        # use the mod_alias then for the correct mapping
+        DispatcherDeclineRoot 0
+
+        # if turned on, the dispatcher uses the URL already processed 
+        # by handlers preceeding the dispatcher (i.e. mod_rewrite) 
+        # instead of the original one passed to the web server. 
+        DispatcherUseProcessedURL 1
+
+        # if turned to 1, the dispatcher does not spool an error
+        # response to the client (where the status code is greater
+        # or equal than 400), but passes the status code to
+        # Apache, which e.g. allows an ErrorDocument directive
+        # to process such a status code. 
+        #
+        # Additionally, one can specify the status code ranges that should
+        # be left to web server to handle, e.g.
+        #
+        # DispatcherPassError 400-404,501
+        DispatcherPassError 0
+    </IfModule>
+
+    <Directory "/">
+        <IfModule disp_apache2.c>
+            SetHandler dispatcher-handler
+            ModMimeUsePathInfo On
+        </IfModule>
+
+        Options Includes FollowSymLinks
+        AllowOverride None
+        Order allow,deny
+        Allow from localhost
+        Require all granted
+
+        # Insert filter
+        SetOutputFilter DEFLATE
+
+        # Don't compress images
+        SetEnvIfNoCase Request_URI \
+        \.(?:gif|jpe?g|png)$ no-gzip dont-vary
+
+        # Make sure proxies don't deliver the wrong content
+        Header append Vary User-Agent env=!dont-vary
+    </Directory>
+</VirtualHost>

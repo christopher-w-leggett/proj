@@ -1,0 +1,152 @@
+#!/bin/bash
+
+_setup_dispatcher(){
+    local DISPATCHER_MODULE_PATH="${1}"
+    local PROJ_NAME="${2}"
+    local PROJ_DIR=$(project_directory "${PROJ_NAME}")
+
+    # Grab parameter values TODO: Implement this
+    local INSTANCE_NAME=""
+    local DOMAIN_NAME=""
+
+    # Gather AEM instance details
+    local INSTANCE_NAME_QUESTION="Which AEM instance would you like this apache dispatcher for?"
+    local INSTANCE_NAME_INPUT_MESSAGE="${INSTANCE_NAME_QUESTION}"
+    while [[ ! -d "${PROJ_DIR}/sites/aem/${INSTANCE_NAME}" || "" == "${INSTANCE_NAME}" ]]; do
+        echo "${INSTANCE_NAME_INPUT_MESSAGE}"
+        read INSTANCE_NAME
+
+        INSTANCE_NAME_INPUT_MESSAGE="AEM instance doesn't exist.  ${INSTANCE_NAME_QUESTION}"
+    done
+
+    local DOMAIN_NAME_QUESTION="What domain name do you want to use for this dispatcher instance?"
+    local DOMAIN_NAME_INPUT_MESSAGE="${DOMAIN_NAME_QUESTION}"
+    while [[ -z "${DOMAIN_NAME}" || "" == "${DOMAIN_NAME}" ]]; do
+        echo "${DOMAIN_NAME_INPUT_MESSAGE}"
+        read DOMAIN_NAME
+
+        DOMAIN_NAME_INPUT_MESSAGE="I didn't quite get that.  ${DOMAIN_NAME_QUESTION}"
+    done
+
+    # Find port of AEM instance
+    local PORT=`grep 'CQ_PORT=450[0-9]' "${PROJ_DIR}/sites/aem/${INSTANCE_NAME}/crx-quickstart/bin/start" | awk -F = '{print $2}'`
+
+    # Create directories
+    if [ ! -d "${PROJ_DIR}/sites/apache" ]; then
+        echo "Creating ${PROJ_DIR}/sites/apache."
+        mkdir "${PROJ_DIR}/sites/apache"
+    fi
+    if [ ! -d "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}" ]; then
+        echo "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}."
+        mkdir "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}"
+    fi
+    if [ ! -d "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf" ]; then
+        echo "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf."
+        mkdir "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf"
+    fi
+    if [ ! -d "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/log" ]; then
+        echo "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/log."
+        mkdir "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/log"
+    fi
+    if [ ! -d "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www" ]; then
+        echo "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www."
+        mkdir "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www"
+        chmod 775 "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www"
+        sudo chgrp _www "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www"
+    fi
+
+    # Process string replacements
+    local DISPATCHER_MODULE_REPLACE="${DISPATCHER_MODULE_PATH//\//\\/}"
+    local PROJ_DIR_REPLACE="${PROJ_DIR//\//\\/}"
+
+    # Setup site httpd configuration
+    if [ ! -f "/etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf" ]; then
+        echo "Copying site httpd configuration ${PROGRAM_DIR}/templates/disp.conf.template to /etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf."
+        sudo cp "${PROGRAM_DIR}/templates/disp.conf.template" "/etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf"
+
+        # Configure site httpd configuration
+        sudo sed -i '' -e "s/<disp-module>/${DISPATCHER_MODULE_REPLACE}/g" "/etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf"
+        sudo sed -i '' -e "s/<site-domain>/${DOMAIN_NAME}/g" "/etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf"
+        sudo sed -i '' -e "s/<site-name>/${INSTANCE_NAME}/g" "/etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf"
+        sudo sed -i '' -e "s/<project-dir>/${PROJ_DIR_REPLACE}/g" "/etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf"
+    fi
+
+    # Setup dispatcher.any file
+    if [ ! -f "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any" ]; then
+        echo "Copying dispatcher configuration ${PROGRAM_DIR}/templates/dispatcher.any.template to ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any."
+        sudo cp "${PROGRAM_DIR}/templates/dispatcher.any.template" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any"
+
+        # Configure site httpd configuration
+        sudo sed -i '' -e "s/<site-domain>/${DOMAIN_NAME}/g" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any"
+        sudo sed -i '' -e "s/<site-name>/${INSTANCE_NAME}/g" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any"
+        sudo sed -i '' -e "s/<site-port>/${PORT}/g" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any"
+        sudo sed -i '' -e "s/<project-dir>/${PROJ_DIR_REPLACE}/g" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any"
+    fi
+
+    # Append domain to hosts file if it doesn't exist.
+    local DOMAIN_PATTERN="${DOMAIN_NAME//./\.}"
+    if grep "${DOMAIN_PATTERN}" "/etc/hosts" >/dev/null; then
+        echo 'Domain already found in hosts file.'
+    else
+        local DOMAIN_ENTRY="127.0.0.1 ${DOMAIN_NAME}"
+        sudo -- sh -c "echo '${DOMAIN_ENTRY}' >> /etc/hosts"
+    fi
+
+    # Cycle Apache
+    sudo apachectl -k graceful
+}
+
+command_setup-dispatcher(){
+    local PROJ_NAME="${1}"
+    local DISPATCHER_MODULE_PATH=""
+    shift
+
+    if [[ -n "${PROJ_NAME}" && "" != "${PROJ_NAME}" ]]; then
+        local PROJ_DIR=$(project_directory "${PROJ_NAME}")
+
+        if [ -d "${PROJ_DIR}" ]; then
+            if [[ -z "${DISPATCHER_MODULE_PATH}" || "" == "${DISPATCHER_MODULE_PATH}" ]]; then
+                echo "Provide path to the dispatcher http module:"
+                read DISPATCHER_MODULE_PATH
+            fi
+
+            if [[ -n "${DISPATCHER_MODULE_PATH}" && "" != "${DISPATCHER_MODULE_PATH}" && -f "${DISPATCHER_MODULE_PATH}" ]]; then
+                local SETUP_DISPATCHER="y"
+                while [ "y" == "${SETUP_DISPATCHER}" ]; do
+                    _setup_dispatcher "${DISPATCHER_MODULE_PATH}" "${PROJ_NAME}"
+
+                    SETUP_DISPATCHER=""
+                    local SETUP_DISPATCHER_QUESTION="Would you like to setup another apache dispatcher instance (y/n)?"
+                    local SETUP_DISPATCHER_INPUT_MESSAGE="${SETUP_DISPATCHER_QUESTION}"
+                    while [[ "y" != "${SETUP_DISPATCHER}" && "n" != "${SETUP_DISPATCHER}" ]]; do
+                        echo "${SETUP_DISPATCHER_INPUT_MESSAGE}"
+                        read SETUP_DISPATCHER
+
+                        SETUP_DISPATCHER_INPUT_MESSAGE="I didn't quite get that.  ${SETUP_DISPATCHER_QUESTION}"
+                    done
+                done
+            else
+                echo "No dispatcher http module provided, unable to setup AEM."
+                return 80
+            fi
+        else
+            echo "The ${PROJ_NAME} project doesn't exists in directory ${PROJ_DIR}.  Please use '${PROGRAM_NAME} init ${PROJ_NAME}' to initialize the project."
+            return 65
+        fi
+    else
+        echo "A project name is required to setup the Apache Dispatcher in the project directory.  Use '${PROGRAM_NAME} help setup-dispatcher' for help with the setup-dispatcher command."
+        return 64
+    fi
+}
+
+command_setup-dispatcher_help(){
+    echo "USAGE"
+    echo "   ${PROGRAM_NAME} setup-dispatcher <project_name>"
+    echo ""
+    echo "DESCRIPTION"
+    echo "   The 'setup-dispatcher' command is used to configure the Apache Dispatcher for one or more AEM instances in an existing project."
+}
+
+command_setup-dispatcher_help_short(){
+    echo "Configures Apache Dispatcher for one or more AEM instances."
+}
