@@ -44,7 +44,7 @@ _setup_aem(){
         RUNMODES="${RUNMODES},${ADDITIONAL_RUNMODES}"
     fi
 
-    local INCLUDE_GEOMETRIXX_QUESTION="Would you like to include geometrixx content (y/n)?"
+    local INCLUDE_GEOMETRIXX_QUESTION="Would you like to setup in production ready mode (y/n)?"
     local INCLUDE_GEOMETRIXX_INPUT_MESSAGE="${INCLUDE_GEOMETRIXX_QUESTION}"
     while [[ "y" != "${INCLUDE_GEOMETRIXX}" && "n" != "${INCLUDE_GEOMETRIXX}" ]]; do
         echo "${INCLUDE_GEOMETRIXX_INPUT_MESSAGE}"
@@ -52,7 +52,7 @@ _setup_aem(){
 
         INCLUDE_GEOMETRIXX_INPUT_MESSAGE="I didn't quite get that.  ${INCLUDE_GEOMETRIXX_QUESTION}"
     done
-    if [ "y" != "${INCLUDE_GEOMETRIXX}" ]; then
+    if [ "n" != "${INCLUDE_GEOMETRIXX}" ]; then
         RUNMODES="${RUNMODES},nosamplecontent"
     fi
 
