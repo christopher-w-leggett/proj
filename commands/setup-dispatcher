@@ -7,26 +7,24 @@ _setup_dispatcher(){
 
     # Grab parameter values TODO: Implement this
     local INSTANCE_NAME=""
-    local DOMAIN_NAME=""
 
     # Gather AEM instance details
     local INSTANCE_NAME_QUESTION="Which AEM instance would you like this apache dispatcher for?"
     local INSTANCE_NAME_INPUT_MESSAGE="${INSTANCE_NAME_QUESTION}"
     while [[ ! -d "${PROJ_DIR}/sites/aem/${INSTANCE_NAME}" || "" == "${INSTANCE_NAME}" ]]; do
         echo "${INSTANCE_NAME_INPUT_MESSAGE}"
+        find "${PROJ_DIR}/sites/aem" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;
         read INSTANCE_NAME
 
         INSTANCE_NAME_INPUT_MESSAGE="AEM instance doesn't exist.  ${INSTANCE_NAME_QUESTION}"
     done
 
-    local DOMAIN_NAME_QUESTION="What domain name do you want to use for this dispatcher instance?"
-    local DOMAIN_NAME_INPUT_MESSAGE="${DOMAIN_NAME_QUESTION}"
-    while [[ -z "${DOMAIN_NAME}" || "" == "${DOMAIN_NAME}" ]]; do
-        echo "${DOMAIN_NAME_INPUT_MESSAGE}"
-        read DOMAIN_NAME
-
-        DOMAIN_NAME_INPUT_MESSAGE="I didn't quite get that.  ${DOMAIN_NAME_QUESTION}"
-    done
+    local DOMAIN_NAME="${INSTANCE_NAME}.${PROJ_NAME}.com"
+    echo "What domain name do you want to use for this dispatcher instance [${DOMAIN_NAME}]?"
+    read USER_DEFINED_DOMAIN_NAME
+    if [[ -n "${USER_DEFINED_DOMAIN_NAME}" && "" != "${USER_DEFINED_DOMAIN_NAME}" ]]; then
+        DOMAIN_NAME="${USER_DEFINED_DOMAIN_NAME}"
+    fi
 
     # Find port of AEM instance
     local PORT=`grep 'CQ_PORT=450[0-9]' "${PROJ_DIR}/sites/aem/${INSTANCE_NAME}/crx-quickstart/bin/start" | awk -F = '{print $2}'`
