@@ -116,6 +116,7 @@ _setup_aem(){
         done
     fi
 
+    #TODO: Find way to use quickstart jar when starting vs changing start script.
     sed -i '' -e "s/CQ_PORT=450[0-9]/CQ_PORT=${PORT}/g" "${INSTALL_DIR}/crx-quickstart/bin/start"
 
     sed -i '' -e "s/CQ_RUNMODE='.*'/CQ_RUNMODE='${RUNMODES}'/g" "${INSTALL_DIR}/crx-quickstart/bin/start"

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+command_config(){
+    #retrieve first argument and verify "get" or "set" has been provided.
+    local ACTION="${1}"
+    shift
+
+    if [ "get" == "${ACTION}" ]; then
+        local PROP_VALUE=$(get_config $@)
+        echo "${PROP_VALUE}"
+    elif [ "set" == "${ACTION}" ]; then
+        set_config $@
+    else
+        echo "get or set must be provided."
+        return 80
+    fi
+}
+
+command_config_help(){
+    echo "USAGE"
+    echo "   ${PROGRAM_NAME} config get|set [<project_name>] <property> [<default-value>|<value>]"
+    echo ""
+    echo "DESCRIPTION"
+    echo "   The 'config' command is used to get or set configurations.  A project name may be provided to get or set a configuration at the project level.  If no project name is provided, the configuration will be set at the user level and retrieved by first looking at the user level and then the global level."
+}
+
+command_config_help_short(){
+    echo "Gets or sets configurations at a user or project level."
+}

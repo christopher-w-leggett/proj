@@ -16,6 +16,7 @@ As mentioned earlier Proj is just a collection of bash scripts that are organize
 | Command                                                         | Description                                                       |
 | --------------------------------------------------------------- | ----------------------------------------------------------------- |
 | `proj dir [<project_name>]`                                     | Displays a project's directory.                                   |
+| `proj config get|set [<project_name>] <property> [<value>]`     | Gets or sets configurations at a user or project level.           |
 | `proj init <project_name>`                                      | Initializes a project's directory structure.                      |
 | `proj list`                                                     | Lists projects currently managed by proj.                         |
 | `proj start <project_name> [(<aem_instance_name> [<port>])...]` | Starts a project using its start script.                          |

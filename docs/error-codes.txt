@@ -6,6 +6,9 @@ Common:
 68 = Option ? requires an argument
 69 = PROJ_PROJECTS_HOME environment variable is not set
 
+Config:
+80 = get or set must be provided
+
 Init:
 80 = Project already exists
 

@@ -30,3 +30,60 @@ wait_for(){
         printf "\b \b"
     fi
 }
+
+get_config(){
+    local PROJ_DIR=$(project_directory "${1}")
+    local PROJ_CONF_FILE="${PROJ_DIR}/.proj/proj.cfg"
+    local USER_CONF_FILE="${HOME}/.proj/proj.cfg"
+
+    if [ -d "${PROJ_DIR}" ]; then
+        #We found a project directory so shift parameters
+        shift
+    fi
+
+    local PROP_NAME="${1}"
+    local PROP_VALUE=""
+    local DEFAULT_VALUE="${2}"
+    if [ -f "${PROJ_CONF_FILE}" ]; then
+        #Found project configuration, try to pull from there.
+        PROP_VALUE=`cat "${PROJ_CONF_FILE}" | grep "${PROP_NAME}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'`
+    fi
+
+    if [[ -f "${USER_CONF_FILE}" && "" == "${PROP_VALUE}" ]]; then
+        #Value is empty, try to pull from user config
+        PROP_VALUE=`cat "${USER_CONF_FILE}" | grep "${PROP_NAME}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'`
+    fi
+
+    if [ "" == "${PROP_VALUE}" ]; then
+        #Value still empty, use default
+        PROP_VALUE="${DEFAULT_VALUE}"
+    fi
+
+    echo "${PROP_VALUE}"
+}
+
+set_config(){
+    local PROJ_DIR=$(project_directory "${1}")
+    local CONF_DIR="${HOME}/.proj"
+
+    if [ -d "${PROJ_DIR}" ]; then
+        #Found project directory, write to project configuration
+        CONF_DIR="${PROJ_DIR}/.proj"
+        shift
+    fi
+
+    local CONF_FILE="${CONF_DIR}/proj.cfg"
+    local PROP_NAME="${1}"
+    local PROP_VALUE="${2}"
+
+    mkdir -p "${CONF_DIR}"
+    touch "${CONF_FILE}"
+
+    if grep "${PROP_NAME}" "${CONF_FILE}" >/dev/null; then
+        #Replace property value
+        sed -i '' -e "s/${PROP_NAME}=.*/${PROP_NAME}=${PROP_VALUE}/g" "${CONF_FILE}"
+    else
+        #Append property
+        echo "${PROP_NAME}=${PROP_VALUE}" >> ${CONF_FILE}
+    fi
+}
