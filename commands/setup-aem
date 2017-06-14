@@ -87,19 +87,11 @@ _setup_aem(){
         read ADDED_PACKAGE
     done
 
-    # Create directories
-    if [ ! -d "${PROJ_DIR}/sites" ]; then
-        echo "Creating ${PROJ_DIR}/sites."
-        mkdir "${PROJ_DIR}/sites"
-    fi
-    if [ ! -d "${PROJ_DIR}/sites/aem" ]; then
-        echo "Creating ${PROJ_DIR}/sites/aem."
-        mkdir "${PROJ_DIR}/sites/aem"
-    fi
+    # Create install directory
     local INSTALL_DIR="${PROJ_DIR}/sites/aem/${INSTANCE_NAME}"
     if [ ! -d "${INSTALL_DIR}" ]; then
         echo "Creating ${INSTALL_DIR}."
-        mkdir "${INSTALL_DIR}"
+        mkdir -p "${INSTALL_DIR}"
     fi
 
     # Setup AEM

@@ -30,13 +30,9 @@ _setup_dispatcher(){
     local PORT=`grep 'CQ_PORT=450[0-9]' "${PROJ_DIR}/sites/aem/${INSTANCE_NAME}/crx-quickstart/bin/start" | awk -F = '{print $2}'`
 
     # Create directories
-    if [ ! -d "${PROJ_DIR}/sites/apache" ]; then
-        echo "Creating ${PROJ_DIR}/sites/apache."
-        mkdir "${PROJ_DIR}/sites/apache"
-    fi
     if [ ! -d "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}" ]; then
         echo "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}."
-        mkdir "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}"
+        mkdir -p "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}"
     fi
     if [ ! -d "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf" ]; then
         echo "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf."
