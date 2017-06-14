@@ -21,6 +21,20 @@ As mentioned earlier Proj is just a collection of bash scripts that are organize
 | `proj list`                                                     | Lists projects currently managed by proj.                         |
 | `proj start <project_name> [(<aem_instance_name> [<port>])...]` | Starts a project using its start script.                          |
 | `proj stop <project_name> [<aem_instance_name>...]`             | Stops a project using its stop script.                            |
-| `proj setup-aem <project_name> [-j <aem_jar>]`                  | Sets up one or more AEM instances.                                |
+| `proj setup-aem <project_name>`                                 | Sets up one or more AEM instances.                                |
 | `proj setup-dispatcher <project_name>`                          | Configures Apache Dispatcher for one or more AEM instances.       |
 | `proj profile <project_name> [<aem_instance_name>]`             | Opens jvisualvm connected to the pid AEM is currently running on. |
+
+## Configurations
+The following configurations can be added using the `proj config set ...` command.
+
+| Configuration                     | Description                                                                 |
+| aem.default.jar                   | The default AEM jar to use when setting up a new AEM instance.              |
+| aem.default.instance.name         | The default AEM instance name.                                              |
+| aem.default.instance.type         | The default AEM instance type.                                              |
+| aem.default.production.ready.mode | The default value when prompted to install AEM in production ready mode.    |
+| aem.default.author.port           | The default port when installing an author instance.                        |
+| aem.default.author.debug.port     | The default debug port when installing an author instance.                  |
+| aem.default.publish.port          | The default port when installing a publish instance.                        |
+| aem.default.publish.debug.port    | The default debug port when installing a publish instance.                  |
+| aem.default.dispatcher.module     | The default dispatcher module to use when setting up a dispatcher instance. |

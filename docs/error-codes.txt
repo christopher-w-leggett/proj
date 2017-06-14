@@ -21,3 +21,7 @@ Stop:
 Setup-AEM:
 80 = No AEM jar provided
 81 = AEM instance already exists
+
+Setup-Dispatcher:
+80 = No dispatcher http module provided.
+81 = No AEM instances exist.

@@ -31,6 +31,58 @@ wait_for(){
     fi
 }
 
+prompt_options(){
+    #Capture variable to store result into
+    local __RESULT=$1
+    shift
+
+    #Capture prompt values
+    local PROMPT_QUESTION="${1}"
+    local DEFAULT_VALUE="${2}"
+    local PROMPT_INPUT=": "
+    if [ "" != "${DEFAULT_VALUE}" ]; then
+        PROMPT_INPUT="[${DEFAULT_VALUE}]${PROMPT_INPUT}"
+    fi
+    shift
+    shift
+
+    #Prompt question
+    echo "${PROMPT_QUESTION}"
+
+    #Prompt options
+    local COUNTER=1
+    for VALID_OPT in $@; do
+        echo "${COUNTER}) ${VALID_OPT}"
+        COUNTER=$[COUNTER + 1]
+    done
+
+    #Grab input
+    local VALUE=""
+    while [ "" == "${VALUE}" ]; do
+        local CHOSEN_OPT=""
+        echo -n "${PROMPT_INPUT}"
+        read CHOSEN_OPT
+
+        if [[ "" == "${CHOSEN_OPT}" && "" != "${DEFAULT_VALUE}" ]]; then
+            VALUE="${DEFAULT_VALUE}"
+        elif echo "${CHOSEN_OPT}" | grep '^[0-9]*$' >/dev/null; then
+            local OPT_COUNTER=1
+            for VALID_OPT in $@; do
+                if [ "${CHOSEN_OPT}" == "${OPT_COUNTER}" ]; then
+                    VALUE="${VALID_OPT}"
+                fi
+                OPT_COUNTER=$[OPT_COUNTER + 1]
+            done
+        fi
+
+        if [ "" == "${VALUE}" ]; then
+            echo "Invalid selection."
+        fi
+    done
+
+    eval $__RESULT="${VALUE}"
+}
+
 get_config(){
     local PROJ_DIR=$(project_directory "${1}")
     local PROJ_CONF_FILE="${PROJ_DIR}/.proj/proj.cfg"

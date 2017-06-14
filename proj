@@ -55,7 +55,7 @@ done
 if [[ "${HAS_HELP_OPTION}" == "n" && ${#COMMAND_NAMES[@]} -ne 0 ]]; then
     for COMMAND_NAME in ${COMMAND_NAMES[@]}; do
         # TODO: Passing expanded arguments into command has issues with command parameters containing spaces.
-        command_${COMMAND_NAME} $@ 2> /dev/null
+        command_${COMMAND_NAME} $@
 
         COMMAND_STATUS=$?
         if [ ${COMMAND_STATUS} -ne 0 ]; then
