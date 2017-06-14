@@ -23,8 +23,8 @@ command_stop(){
                     printf "Stopping the ${AEM_INSTANCE_NAME} AEM instance "
                     "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop" > /dev/null 2>&1
                     local PID=`cat "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"`
-                    wait_for kill -0 "${PID}"
-                    if kill -0 "${PID}"; then
+                    wait_for kill -0 "${PID}" 2> /dev/null
+                    if kill -0 "${PID}" 2> /dev/null; then
                         printf "\xE2\x9D\x8C\n"
                     else
                         printf "\xE2\x9C\x85\n"
