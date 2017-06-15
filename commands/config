@@ -6,10 +6,10 @@ command_config(){
     shift
 
     if [ "get" == "${ACTION}" ]; then
-        local PROP_VALUE=$(get_config $@)
+        local PROP_VALUE=$(get_config "$@")
         echo "${PROP_VALUE}"
     elif [ "set" == "${ACTION}" ]; then
-        set_config $@
+        set_config "$@"
     else
         echo "get or set must be provided."
         return 80

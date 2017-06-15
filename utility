@@ -51,7 +51,7 @@ prompt_options(){
 
     #Prompt options
     local COUNTER=1
-    for VALID_OPT in $@; do
+    for VALID_OPT in "$@"; do
         echo "${COUNTER}) ${VALID_OPT}"
         COUNTER=$[COUNTER + 1]
     done
@@ -67,7 +67,7 @@ prompt_options(){
             VALUE="${DEFAULT_VALUE}"
         elif echo "${CHOSEN_OPT}" | grep '^[0-9]*$' >/dev/null; then
             local OPT_COUNTER=1
-            for VALID_OPT in $@; do
+            for VALID_OPT in "$@"; do
                 if [ "${CHOSEN_OPT}" == "${OPT_COUNTER}" ]; then
                     VALUE="${VALID_OPT}"
                 fi
