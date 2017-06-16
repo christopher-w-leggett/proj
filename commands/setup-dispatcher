@@ -26,7 +26,7 @@ _setup_dispatcher(){
         fi
 
         # Find port of AEM instance
-        local PORT=`grep '^\tCQ_PORT=[0-9]\{4\}' "${PROJ_DIR}/sites/aem/${INSTANCE_NAME}/crx-quickstart/bin/start" | awk -F = '{print $2}'`
+        local PORT=`grep '^\tCQ_PORT=[0-9]*$' "${PROJ_DIR}/sites/aem/${INSTANCE_NAME}/crx-quickstart/bin/start" | awk -F = '{print $2}'`
 
         # Create directories
         if [ ! -d "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}" ]; then
