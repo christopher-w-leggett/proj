@@ -14,7 +14,7 @@ PROGRAM_VERSION="0.0.1"
 ####################
 COMMAND_DIR="${PROGRAM_DIR}/commands"
 . "${COMMAND_DIR}/help"
-VALID_COMMANDS=(dir config init list start stop setup-aem setup-dispatcher profile)
+VALID_COMMANDS=(dir config init list start stop setup-aem setup-dispatcher profile status)
 for VALID_COMMAND in ${VALID_COMMANDS[@]}; do
     . "${COMMAND_DIR}/${VALID_COMMAND}"
 done

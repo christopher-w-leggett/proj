@@ -24,6 +24,7 @@ As mentioned earlier Proj is just a collection of bash scripts that are organize
 | `proj setup-aem <project_name>`                                             | Sets up one or more AEM instances.                                |
 | `proj setup-dispatcher <project_name>`                                      | Configures Apache Dispatcher for one or more AEM instances.       |
 | `proj profile <project_name> [<aem_instance_name>]`                         | Opens jvisualvm connected to the pid AEM is currently running on. |
+| `proj status`                                                               | Lists information about running AEM instances for each project.   |
 
 ## Configurations
 The following configurations can be added using the `proj config set ...` command.

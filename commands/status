@@ -1,0 +1,58 @@
+#!/bin/bash
+
+command_status(){
+    local PROJECT_STATUS_WRITTEN="n"
+
+    # Loop through each project directory
+    while IFS=  read -r -d $'\0'; do
+        local PROJ_DIR="${REPLY}"
+        local PROJ_NAME=`basename "${PROJ_DIR}"`
+        local PROJ_NAME_WRITTEN="n"
+
+        # Loop through each AEM instance in the project
+        if [ -d "${PROJ_DIR}/sites/aem" ]; then
+            while IFS=  read -r -d $'\0'; do
+                local INSTANCE_DIR="${REPLY}"
+                local INSTANCE_NAME=`basename "${INSTANCE_DIR}"`
+                local INSTANCE_PID=`cat "${INSTANCE_DIR}/crx-quickstart/conf/cq.pid"`
+
+                local INSTANCE_PROCESS_STRING=`ps -p "${INSTANCE_PID}" | grep "${INSTANCE_PID}"`
+                if [[ -n "${INSTANCE_PROCESS_STRING}" && "" != "${INSTANCE_PROCESS_STRING}" ]]; then
+                    local RUNNING_PORT=`echo "${INSTANCE_PROCESS_STRING}" | grep -o "\-p\s[0-9]\+" | grep -o "[0-9]\+"`
+                    local RUNNING_DEBUG_PORT=`echo "${INSTANCE_PROCESS_STRING}" | grep -o "\-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=[0-9]\+" | grep -o "[0-9]\+"`
+
+                    if [ "n" == "${PROJ_NAME_WRITTEN}" ]; then
+                        if [ "y" == "${PROJECT_STATUS_WRITTEN}" ]; then
+                            echo ""
+                        fi
+                        echo "${PROJ_NAME}"
+                        PROJ_NAME_WRITTEN="y"
+                    fi
+
+                    echo " \`- ${INSTANCE_NAME}"
+                    echo "     \`- Port:       ${RUNNING_PORT}"
+                    echo "     \`- Debug Port: ${RUNNING_DEBUG_PORT}"
+
+                    PROJECT_STATUS_WRITTEN="y"
+                fi
+            done < <(find "${PROJ_DIR}/sites/aem" -mindepth 1 -maxdepth 1 -type d -exec test -f {}/crx-quickstart/conf/cq.pid \; -print0)
+        fi
+    done < <(find "${PROJ_PROJECTS_HOME}" -mindepth 1 -maxdepth 1 -type d -exec test -d {}/.proj \; -print0)
+
+    # Write no running projects message if nothing was written
+    if [ "n" == "${PROJECT_STATUS_WRITTEN}" ]; then
+        echo "No running projects."
+    fi
+}
+
+command_status_help(){
+    echo "USAGE"
+    echo "   ${PROGRAM_NAME} status"
+    echo ""
+    echo "DESCRIPTION"
+    echo "   The 'status' command is used to display information about running AEM instances.  This is helpful when trying to determine which project is running AEM instances."
+}
+
+command_status_help_short(){
+    echo "Lists information about running AEM instances for each project."
+}

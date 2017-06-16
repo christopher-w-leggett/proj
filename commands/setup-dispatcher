@@ -101,6 +101,8 @@ command_setup-dispatcher(){
         local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
         if [ -d "${PROJ_DIR}" ]; then
+            #TODO: Perform system sanity check to make sure we can successfully setup the dispatcher.
+
             #Grab any configured default dispatcher module
             local DEFAULT_DISPATCHER_MODULE_PATH=$(get_config "${PROJ_NAME}" "aem.default.dispatcher.module" "")
 
