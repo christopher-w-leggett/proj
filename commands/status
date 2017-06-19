@@ -3,6 +3,9 @@
 command_status(){
     local PROJECT_STATUS_WRITTEN="n"
 
+    # Grab process information
+    local PROCESS_INFO=`ps | grep quickstart`
+
     # Loop through each project directory
     while IFS=  read -r -d $'\0'; do
         local PROJ_DIR="${REPLY}"
@@ -16,10 +19,10 @@ command_status(){
                 local INSTANCE_NAME=`basename "${INSTANCE_DIR}"`
                 local INSTANCE_PID=`cat "${INSTANCE_DIR}/crx-quickstart/conf/cq.pid"`
 
-                local INSTANCE_PROCESS_STRING=`ps -p "${INSTANCE_PID}" | grep "${INSTANCE_PID}"`
+                local INSTANCE_PROCESS_STRING=`echo -n "${PROCESS_INFO}" | grep "${INSTANCE_PID}"`
                 if [[ -n "${INSTANCE_PROCESS_STRING}" && "" != "${INSTANCE_PROCESS_STRING}" ]]; then
-                    local RUNNING_PORT=`echo "${INSTANCE_PROCESS_STRING}" | grep -o "\-p\s[0-9]\+" | grep -o "[0-9]\+"`
-                    local RUNNING_DEBUG_PORT=`echo "${INSTANCE_PROCESS_STRING}" | grep -o "\-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=[0-9]\+" | grep -o "[0-9]\+"`
+                    local RUNNING_PORT=`echo -n "${INSTANCE_PROCESS_STRING}" | grep -o "\-p\s[0-9]\+" | grep -o "[0-9]\+"`
+                    local RUNNING_DEBUG_PORT=`echo -n "${INSTANCE_PROCESS_STRING}" | grep -o "\-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=[0-9]\+" | grep -o "[0-9]\+"`
 
                     if [ "n" == "${PROJ_NAME_WRITTEN}" ]; then
                         if [ "y" == "${PROJECT_STATUS_WRITTEN}" ]; then
