@@ -1,6 +1,33 @@
 #!/bin/bash
 
-_setup_dispatcher(){
+_setup_dispatcher_darwin_check(){
+    local STATUS=0
+
+    # Verify apachectl command exists (which apachectl >/dev/null; echo $?)
+    if ! which apachectl > /dev/null; then
+        echo "Failed to locate apachectl command."
+        STATUS=83
+    fi
+
+    if [ ! -f "/etc/apache2/httpd.conf" ]; then
+        echo "Failed to locate /etc/apache2/httpd.conf file."
+        STATUS=83
+    fi
+
+    if [ ! -d "/etc/apache2/other" ]; then
+        echo "Failed to locate /etc/apache2/other directory."
+        STATUS=83
+    fi
+
+    if [ ! -f "/etc/hosts" ]; then
+        echo "Failed to locate /etc/hosts file."
+        STATUS=83
+    fi
+
+    return ${STATUS}
+}
+
+_setup_dispatcher_darwin(){
     # Grab parameters
     local DISPATCHER_MODULE_PATH="${1}"
     local PROJ_NAME="${2}"
@@ -101,45 +128,54 @@ command_setup-dispatcher(){
         local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
         if [ -d "${PROJ_DIR}" ]; then
-            #TODO: Perform system sanity check to make sure we can successfully setup the dispatcher.
+            local DISTRO="$(uname | tr '[:upper:]' '[:lower:]')"
+            if declare -f "_setup_dispatcher_${DISTRO}_check" > /dev/null; then
+                if "_setup_dispatcher_${DISTRO}_check"; then
+                    #Grab any configured default dispatcher module
+                    local DEFAULT_DISPATCHER_MODULE_PATH=$(get_config "${PROJ_NAME}" "aem.default.dispatcher.module" "")
 
-            #Grab any configured default dispatcher module
-            local DEFAULT_DISPATCHER_MODULE_PATH=$(get_config "${PROJ_NAME}" "aem.default.dispatcher.module" "")
+                    local SETUP_DISPATCHER="Yes"
+                    while [ "Yes" == "${SETUP_DISPATCHER}" ]; do
+                        #Grab user input for dispatcher module location
+                        if [[ -z "${DEFAULT_DISPATCHER_MODULE_PATH}" || "" == "${DEFAULT_DISPATCHER_MODULE_PATH}" ]]; then
+                            echo "Provide path to the dispatcher http module:"
+                        else
+                            echo "Provide path to the dispatcher http module [${DEFAULT_DISPATCHER_MODULE_PATH}]:"
+                        fi
+                        local DISPATCHER_MODULE_PATH=""
+                        read DISPATCHER_MODULE_PATH
 
-            local SETUP_DISPATCHER="Yes"
-            while [ "Yes" == "${SETUP_DISPATCHER}" ]; do
-                #Grab user input for dispatcher module location
-                if [[ -z "${DEFAULT_DISPATCHER_MODULE_PATH}" || "" == "${DEFAULT_DISPATCHER_MODULE_PATH}" ]]; then
-                    echo "Provide path to the dispatcher http module:"
+                        #If no module specified, use default
+                        if [[ -z "${DISPATCHER_MODULE_PATH}" || "" == "${DISPATCHER_MODULE_PATH}" || ! -f "${DISPATCHER_MODULE_PATH}" ]]; then
+                            DISPATCHER_MODULE_PATH="${DEFAULT_DISPATCHER_MODULE_PATH}"
+                        fi
+
+                        # Setup dispatcher if we have all necessary information
+                        if [[ -n "${DISPATCHER_MODULE_PATH}" && "" != "${DISPATCHER_MODULE_PATH}" && -f "${DISPATCHER_MODULE_PATH}" ]]; then
+                            #Set default module to last selected
+                            DEFAULT_DISPATCHER_MODULE_PATH="${DISPATCHER_MODULE_PATH}"
+
+                            "_setup_dispatcher_${DISTRO}" "${DISPATCHER_MODULE_PATH}" "${PROJ_NAME}"
+                            local SETUP_STATUS=$?
+                            if [ ${SETUP_STATUS} -ne 0 ]; then
+                                return ${SETUP_STATUS}
+                            fi
+                        else
+                            echo "No dispatcher http module provided, unable to setup AEM."
+                            return 80
+                        fi
+
+                        #Ask user if they want to setup another instance
+                        prompt_options SETUP_DISPATCHER "Would you like to setup another apache dispatcher instance?" "No" "Yes" "No"
+                    done
                 else
-                    echo "Provide path to the dispatcher http module [${DEFAULT_DISPATCHER_MODULE_PATH}]:"
+                    echo "Apache doesn't appear to be installed or expected directory structure doesn't exist."
+                    return 83
                 fi
-                local DISPATCHER_MODULE_PATH=""
-                read DISPATCHER_MODULE_PATH
-
-                #If no module specified, use default
-                if [[ -z "${DISPATCHER_MODULE_PATH}" || "" == "${DISPATCHER_MODULE_PATH}" || ! -f "${DISPATCHER_MODULE_PATH}" ]]; then
-                    DISPATCHER_MODULE_PATH="${DEFAULT_DISPATCHER_MODULE_PATH}"
-                fi
-
-                # Setup dispatcher if we have all necessary information
-                if [[ -n "${DISPATCHER_MODULE_PATH}" && "" != "${DISPATCHER_MODULE_PATH}" && -f "${DISPATCHER_MODULE_PATH}" ]]; then
-                    #Set default module to last selected
-                    DEFAULT_DISPATCHER_MODULE_PATH="${DISPATCHER_MODULE_PATH}"
-
-                    _setup_dispatcher "${DISPATCHER_MODULE_PATH}" "${PROJ_NAME}"
-                    local SETUP_STATUS=$?
-                    if [ ${SETUP_STATUS} -ne 0 ]; then
-                        return ${SETUP_STATUS}
-                    fi
-                else
-                    echo "No dispatcher http module provided, unable to setup AEM."
-                    return 80
-                fi
-
-                #Ask user if they want to setup another instance
-                prompt_options SETUP_DISPATCHER "Would you like to setup another apache dispatcher instance?" "No" "Yes" "No"
-            done
+            else
+                echo "Setting up dispatcher on $(uname) not supported."
+                return 82
+            fi
         else
             echo "The ${PROJ_NAME} project doesn't exists in directory ${PROJ_DIR}.  Please use '${PROGRAM_NAME} init ${PROJ_NAME}' to initialize the project."
             return 65

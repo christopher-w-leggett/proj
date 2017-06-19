@@ -25,3 +25,5 @@ Setup-AEM:
 Setup-Dispatcher:
 80 = No dispatcher http module provided.
 81 = No AEM instances exist.
+82 = Unsupported OS.
+83 = Apache HTTP not installed.
