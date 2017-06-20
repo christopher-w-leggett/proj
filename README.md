@@ -13,19 +13,19 @@ Setup for Proj is very simply as it is simply a collection of bash scripts.  The
 ## Commands
 As mentioned earlier Proj is just a collection of bash scripts that are organized into separate commands.  These commands are listed below along with a short description of what each does.  For more detailed information about a specific command please run `proj help <command>`.
 
-| Command                                                                                             | Description                                                       |
-| --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `proj dir [<project_name>]`                                                                         | Displays a project's directory.                                   |
-| <code>proj config get&#124;set [<project_name>] <property> [<value>]</code>                         | Gets or sets configurations at a user or project level.           |
-| `proj init <project_name>`                                                                          | Initializes a project's directory structure.                      |
-| `proj list`                                                                                         | Lists projects currently managed by proj.                         |
-| <code>proj start <project_name> [((<aem_instance_name> [<port>]) &#124; <alias>)...]</code>         | Starts a project using its start script.                          |
-| <code>proj stop <project_name> [(<aem_instance_name> &#124; <alias>)...]</code>                     | Stops a project using its stop script.                            |
-| `proj setup-aem <project_name>`                                                                     | Sets up one or more AEM instances.                                |
-| `proj setup-dispatcher <project_name>`                                                              | Configures Apache Dispatcher for one or more AEM instances.       |
-| `proj profile <project_name> [<aem_instance_name>]`                                                 | Opens jvisualvm connected to the pid AEM is currently running on. |
-| `proj status`                                                                                       | Lists information about running AEM instances for each project.   |
-| <code>proj alias list&#124;set&#124;delete <project_name> [<alias> [<aem_instance_name>...]]</code> | Manages aliases for starting/stopping multiple AEM instances.     |
+| Command                                                                                                               | Description                                                       |
+| --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| <code>proj dir [&lt;project_name&gt;]</code>                                                                          | Displays a project's directory.                                   |
+| <code>proj config get&#124;set [&lt;project_name&gt;] &lt;property&gt; [&lt;value&gt;]</code>                         | Gets or sets configurations at a user or project level.           |
+| <code>proj init &lt;project_name&gt;</code>                                                                           | Initializes a project's directory structure.                      |
+| <code>proj list</code>                                                                                                | Lists projects currently managed by proj.                         |
+| <code>proj start &lt;project_name&gt; [((&lt;aem_instance_name&gt; [&lt;port&gt;]) &#124; &lt;alias&gt;)...]</code>   | Starts a project using its start script.                          |
+| <code>proj stop &lt;project_name&gt; [(&lt;aem_instance_name&gt; &#124; &lt;alias&gt;)...]</code>                     | Stops a project using its stop script.                            |
+| <code>proj setup-aem &lt;project_name&gt;</code>                                                                      | Sets up one or more AEM instances.                                |
+| <code>proj setup-dispatcher &lt;project_name&gt;</code>                                                               | Configures Apache Dispatcher for one or more AEM instances.       |
+| <code>proj profile &lt;project_name&gt; [&lt;aem_instance_name&gt;]</code>                                            | Opens jvisualvm connected to the pid AEM is currently running on. |
+| <code>proj status</code>                                                                                              | Lists information about running AEM instances for each project.   |
+| <code>proj alias list&#124;set&#124;delete &lt;project_name&gt; [&lt;alias&gt; [&lt;aem_instance_name&gt;...]]</code> | Manages aliases for starting/stopping multiple AEM instances.     |
 
 ## Configurations
 The following configurations can be added using the `proj config set ...` command.
