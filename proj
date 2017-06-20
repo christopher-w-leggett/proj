@@ -14,7 +14,7 @@ PROGRAM_VERSION="0.0.1"
 ####################
 COMMAND_DIR="${PROGRAM_DIR}/commands"
 . "${COMMAND_DIR}/help"
-VALID_COMMANDS=(dir config init list start stop setup-aem setup-dispatcher profile status)
+VALID_COMMANDS=(dir config init list start stop setup-aem setup-dispatcher profile status alias)
 for VALID_COMMAND in ${VALID_COMMANDS[@]}; do
     . "${COMMAND_DIR}/${VALID_COMMAND}"
 done
@@ -46,13 +46,16 @@ if [ "${1}" == "help" ]; then
     shift
 fi
 
-COMMAND_NAMES=()
-while [[ " ${VALID_COMMANDS[*]} " == *" ${1} "* ]]; do
-    COMMAND_NAMES+=("${1}")
-    shift
-done
+COMMAND_NAMES=("${1}")
+shift
+if [ "y" == "${HAS_HELP_OPTION}" ]; then
+    while [[ " ${VALID_COMMANDS[*]} " == *" ${1} "* ]]; do
+        COMMAND_NAMES+=("${1}")
+        shift
+    done
+fi
 
-if [[ "${HAS_HELP_OPTION}" == "n" && ${#COMMAND_NAMES[@]} -ne 0 ]]; then
+if [[ "n" == "${HAS_HELP_OPTION}" && ${#COMMAND_NAMES[@]} -ne 0 ]]; then
     for COMMAND_NAME in ${COMMAND_NAMES[@]}; do
         command_${COMMAND_NAME} "$@"
 

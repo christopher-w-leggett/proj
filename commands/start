@@ -4,42 +4,58 @@ command_start(){
     local PROJ_NAME="${1}"
     shift
 
-    local AEM_DEFAULT_INSTANCE_NAME=$(get_config "${PROJ_NAME}" "aem.default.instance.name" "author")
-    local AEM_INSTANCE_NAMES=("${AEM_DEFAULT_INSTANCE_NAME}")
-    local AEM_INSTANCE_PORTS=("")
-    if [ $# -gt 0 ]; then
-        AEM_INSTANCE_NAMES=()
-        AEM_INSTANCE_PORTS=()
-        while echo "${1}" | grep '[^0-9]' >/dev/null; do
-            AEM_INSTANCE_NAMES+=("${1}")
-            shift
-
-            if echo "${1}" | grep '^[0-9]\+$' >/dev/null; then
-                AEM_INSTANCE_PORTS+=("${1}")
-                shift
-            else
-                AEM_INSTANCE_PORTS+=("")
-            fi
-        done
-    fi
-
     if [[ -n "${PROJ_NAME}" && "" != "${PROJ_NAME}" ]]; then
         local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
         if [ -d "${PROJ_DIR}" ]; then
+            #Gather aem instance names and ports as entered
+            local AEM_DEFAULT_INSTANCE_NAME=$(get_config "${PROJ_NAME}" "aem.default.instance.name" "author")
+            local AEM_INSTANCE_NAMES=("${AEM_DEFAULT_INSTANCE_NAME}")
+            if [ $# -gt 0 ]; then
+                AEM_INSTANCE_NAMES=()
+                while echo "${1}" | grep '[^0-9]' >/dev/null; do
+                    local AEM_INSTANCE_NAME="${1}"
+                    AEM_INSTANCE_NAMES+=("${AEM_INSTANCE_NAME}")
+                    shift
+
+                    if echo "${1}" | grep '^[0-9]\+$' >/dev/null; then
+                        #ASSOCIATIVE ARRAY HACK
+                        local PORT_VAR="ports_${AEM_INSTANCE_NAME}"
+                        if [ -z "${!PORT_VAR+x}" ]; then
+                            declare "${PORT_VAR}=${1}"
+                        fi
+
+                        shift
+                    fi
+                done
+            fi
+
+            #Expand any aliases
+            expand_aliases AEM_INSTANCE_NAMES "${PROJ_NAME}" "${AEM_INSTANCE_NAMES[@]}"
+
+            #Start instances
             for i in ${!AEM_INSTANCE_NAMES[@]}; do
                 if [ -f "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" ]; then
+                    #Run pre-start script
                     if [ -f "${PROJ_DIR}/.proj/bin/pre-start" ]; then
                         "${PROJ_DIR}/.proj/bin/pre-start" "${AEM_INSTANCE_NAMES[$i]}"
                     fi
 
-                    if [[ -z "${AEM_INSTANCE_PORTS[$i]}" || "" == "${AEM_INSTANCE_PORTS[$i]}" ]]; then
-                        echo "Starting the ${AEM_INSTANCE_NAMES[$i]} AEM instance on its configured port"
+                    #Get port
+                    local AEM_INSTANCE_PORT=""
+                    #ASSOCIATIVE ARRAY HACK
+                    local PORT_VAR="ports_${AEM_INSTANCE_NAMES[$i]}"
+                    if [ -z "${!PORT_VAR+x}" ]; then
+                        AEM_INSTANCE_PORT=`grep '^\tCQ_PORT=[0-9]*$' "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" | awk -F = '{print $2}'`
                     else
-                        echo "Starting the ${AEM_INSTANCE_NAMES[$i]} AEM instance on port ${AEM_INSTANCE_PORTS[$i]}"
+                        AEM_INSTANCE_PORT="${!PORT_VAR}"
                     fi
-                    CQ_PORT="${AEM_INSTANCE_PORTS[$i]}" "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" > /dev/null 2>&1
 
+                    #Start AEM
+                    echo "Starting the ${AEM_INSTANCE_NAMES[$i]} AEM instance on port ${AEM_INSTANCE_PORT}"
+                    CQ_PORT="${AEM_INSTANCE_PORT}" "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" > /dev/null 2>&1
+
+                    #Run post-start script
                     #TODO: Wait for AEM to start before running post-start scripts.
                     if [ -f "${PROJ_DIR}/.proj/bin/post-start" ]; then
                         "${PROJ_DIR}/.proj/bin/post-start" "${AEM_INSTANCE_NAMES[$i]}"
@@ -47,8 +63,6 @@ command_start(){
                 else
                     echo "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAMES[$i]} AEM instance.  Unable to start the ${AEM_INSTANCE_NAMES[$i]} AEM instance."
                 fi
-
-                shift
             done
         else
             echo "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}.  Unable to start ${PROJ_NAME}."
@@ -62,7 +76,7 @@ command_start(){
 
 command_start_help(){
     echo "USAGE"
-    echo "   ${PROGRAM_NAME} start <project_name> [(<aem_instance_name> [<port>])...]"
+    echo "   ${PROGRAM_NAME} start <project_name> [((<aem_instance_name> [<port>]) | <alias>)...]"
     echo ""
     echo "DESCRIPTION"
     echo "   The 'start' command is used to start an AEM instance for an existing project.  If no aem_instance_name is provided, the configured default instance is started.  If no configured default exists, the author instance is started."

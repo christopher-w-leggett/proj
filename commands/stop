@@ -4,16 +4,17 @@ command_stop(){
     local PROJ_NAME="${1}"
     shift
 
-    local AEM_DEFAULT_INSTANCE_NAME=$(get_config "${PROJ_NAME}" "aem.default.instance.name" "author")
-    local AEM_INSTANCE_NAMES=("${AEM_DEFAULT_INSTANCE_NAME}")
-    if [ $# -gt 0 ]; then
-        AEM_INSTANCE_NAMES=("${@}")
-    fi
-
     if [[ -n "${PROJ_NAME}" && "" != "${PROJ_NAME}" ]]; then
         local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
         if [ -d "${PROJ_DIR}" ]; then
+            local AEM_DEFAULT_INSTANCE_NAME=$(get_config "${PROJ_NAME}" "aem.default.instance.name" "author")
+            local AEM_INSTANCE_NAMES=("${AEM_DEFAULT_INSTANCE_NAME}")
+            if [ $# -gt 0 ]; then
+                AEM_INSTANCE_NAMES=("${@}")
+            fi
+            expand_aliases AEM_INSTANCE_NAMES "${PROJ_NAME}" "${AEM_INSTANCE_NAMES[@]}"
+
             for AEM_INSTANCE_NAME in ${AEM_INSTANCE_NAMES[@]}; do
                 if [ -f "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop" ]; then
                     if [ -f "${PROJ_DIR}/.proj/bin/pre-stop" ]; then
@@ -22,10 +23,16 @@ command_stop(){
 
                     printf "Stopping the ${AEM_INSTANCE_NAME} AEM instance "
                     "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop" > /dev/null 2>&1
-                    local PID=`cat "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"`
-                    wait_for kill -0 "${PID}" 2> /dev/null
-                    if kill -0 "${PID}" 2> /dev/null; then
-                        printf "\xE2\x9D\x8C\n"
+
+                    #Wait for instance to stop
+                    if [ -f "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid" ]; then
+                        local PID=`cat "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"`
+                        wait_for kill -0 "${PID}" 2> /dev/null
+                        if kill -0 "${PID}" 2> /dev/null; then
+                            printf "\xE2\x9D\x8C\n"
+                        else
+                            printf "\xE2\x9C\x85\n"
+                        fi
                     else
                         printf "\xE2\x9C\x85\n"
                     fi
@@ -36,8 +43,6 @@ command_stop(){
                 else
                     echo "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAME} AEM instance.  Unable to stop the ${AEM_INSTANCE_NAME} AEM instance."
                 fi
-
-                shift
             done
         else
             echo "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}.  Unable to stop ${PROJ_NAME}."
@@ -51,7 +56,7 @@ command_stop(){
 
 command_stop_help(){
     echo "USAGE"
-    echo "   ${PROGRAM_NAME} stop <project_name> [<aem_instance_name>...]"
+    echo "   ${PROGRAM_NAME} stop <project_name> [(<aem_instance_name> | <alias>)...]"
     echo ""
     echo "DESCRIPTION"
     echo "   The 'stop' command is used to stop an AEM instance for an existing project.  If no aem_instance_name is provided, the configured default instance is stopped.  If no configured default exists, the author instance is stopped."

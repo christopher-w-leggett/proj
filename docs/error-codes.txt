@@ -27,3 +27,7 @@ Setup-Dispatcher:
 81 = No AEM instances exist.
 82 = Unsupported OS.
 83 = Apache HTTP not installed.
+
+Alias:
+80 = list, set or delete must be provided
+81 = Alias name is missing

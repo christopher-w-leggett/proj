@@ -43,8 +43,7 @@ prompt_options(){
     if [ "" != "${DEFAULT_VALUE}" ]; then
         PROMPT_INPUT="[${DEFAULT_VALUE}]${PROMPT_INPUT}"
     fi
-    shift
-    shift
+    shift 2
 
     #Prompt question
     echo "${PROMPT_QUESTION}"
@@ -138,4 +137,38 @@ set_config(){
         #Append property
         echo "${PROP_NAME}=${PROP_VALUE}" >> ${CONF_FILE}
     fi
+}
+
+expand_aliases(){
+    local __RESULT=$1
+    local PROJ_DIR=$(project_directory "${2}")
+    shift 2
+
+    local EXPANDED_NAMES=()
+    #Loop through names and expand aliases
+    local ALIAS_FILE="${PROJ_DIR}/.proj/aliases"
+    for NAME in $@; do
+        #Attempt to find alias line in alias file
+        local ALIAS_LINE=""
+        if [ -f "${ALIAS_FILE}" ]; then
+            ALIAS_LINE=$(grep "${NAME}=" "${ALIAS_FILE}")
+        fi
+
+        if [ "" != "${ALIAS_LINE}" ]; then
+            #NAME matches an alias, so read instance names from alias file
+            local ALIASED_NAMES=($(echo -n "${ALIAS_LINE}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'))
+            for ALIASED_NAME in ${ALIASED_NAMES[@]}; do
+                if [[ " ${EXPANDED_NAMES[*]} " != *" ${ALIASED_NAME} "* ]]; then
+                    EXPANDED_NAMES+=("${ALIASED_NAME}")
+                fi
+            done
+        else
+            #NAME is aem instance name so read it directly
+            if [[ " ${EXPANDED_NAMES[*]} " != *" ${NAME} "* ]]; then
+                EXPANDED_NAMES+=("${NAME}")
+            fi
+        fi
+    done
+
+    eval $__RESULT='("${EXPANDED_NAMES[@]}")'
 }
