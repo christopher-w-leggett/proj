@@ -1,5 +1,66 @@
 #!/bin/bash
 
+is_started(){
+    local DOMAIN_PORT="${1}"
+    local USER_PASS="${2}"
+
+    local STATE=$(curl -u "${USER_PASS}" -s "http://${DOMAIN_PORT}/system/console/bundles/.json" | python -c '
+import sys, json;
+
+allBundlesStarted = True
+
+try:
+    bundles = json.load(sys.stdin)["data"]
+    for bundle in bundles:
+        if bundle["state"] != "Active" and bundle["state"] != "Fragment":
+            allBundlesStarted = False
+except ValueError:
+    allBundlesStarted = False
+except KeyboardInterrupt:
+    allBundlesStarted = False
+
+if allBundlesStarted:
+    print "Started"
+else:
+    print "Not Started"')
+
+    if [ "Started" == "${STATE}" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+wait_for_startup(){
+    local COUNT=1
+    #TODO: Pull timeout  from configuration instead.
+    local TIMEOUT=60
+    local DOMAIN_PORT="${1}"
+    local USER_PASS="${2}"
+
+    local stop=""
+    trap 'stop="true"' INT
+
+    while true; do
+        if [ "true" == "${stop}" ]; then
+            break;
+        fi
+
+        if [ "${COUNT}" -gt "${TIMEOUT}" ]; then
+            break;
+        fi
+
+        if is_started "${DOMAIN_PORT}" "${USER_PASS}" 2> /dev/null; then
+            break;
+        else
+            sleep 1
+            COUNT=$((COUNT+1))
+        fi
+    done
+
+    trap - INT
+}
+
 command_start(){
     local PROJ_NAME="${1}"
     shift
@@ -55,11 +116,21 @@ command_start(){
                     echo "Starting the ${AEM_INSTANCE_NAMES[$i]} AEM instance on port ${AEM_INSTANCE_PORT}"
                     CQ_PORT="${AEM_INSTANCE_PORT}" "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" > /dev/null 2>&1
 
+                    #TODO: Need configuration for user:pass used when checking startup status.
+                    (
+                    wait_for_startup "localhost:${AEM_INSTANCE_PORT}" "admin:admin" 2> /dev/null
+                    if is_started "localhost:${AEM_INSTANCE_PORT}" "admin:admin" 2> /dev/null; then
+                        #TODO: Need to verify we are Mac OSX before running this.
+                        osascript -e "display notification \"'${AEM_INSTANCE_NAMES[$i]}' started.\" with title \"AEM Startup Status\""
+                    else
+                        osascript -e "display notification \"'${AEM_INSTANCE_NAMES[$i]}' status unknown.\" with title \"AEM Startup Status\""
+                    fi
+
                     #Run post-start script
-                    #TODO: Wait for AEM to start before running post-start scripts.
                     if [ -f "${PROJ_DIR}/.proj/bin/post-start" ]; then
                         "${PROJ_DIR}/.proj/bin/post-start" "${AEM_INSTANCE_NAMES[$i]}"
                     fi
+                    ) &
                 else
                     echo "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAMES[$i]} AEM instance.  Unable to start the ${AEM_INSTANCE_NAMES[$i]} AEM instance."
                 fi

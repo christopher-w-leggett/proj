@@ -4,6 +4,17 @@ project_directory(){
     echo "${PROJ_PROJECTS_HOME}/${1}"
 }
 
+is_process_stopped(){
+    local PID="${1}"
+
+    # kill -0 lets us know process is running, so reverse output
+    if kill -0 "${PID}" 2> /dev/null; then
+        return 1
+    else
+        return 0
+    fi
+}
+
 wait_for(){
     local i=1
     local spinner="/-\|"
@@ -12,7 +23,7 @@ wait_for(){
 
     trap 'stop="true"' INT
 
-    while "$@"; do
+    while true; do
         if [ "true" == "${stop}" ]; then
             break;
         fi
@@ -21,7 +32,12 @@ wait_for(){
         fi
         printf "${spinner:i++%${#spinner}:1}"
         displayed="true"
-        sleep 0.5
+
+        if "$@"; then
+            break;
+        else
+            sleep 0.5
+        fi
     done
 
     trap - INT

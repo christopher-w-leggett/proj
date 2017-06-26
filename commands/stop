@@ -27,11 +27,11 @@ command_stop(){
                     #Wait for instance to stop
                     if [ -f "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid" ]; then
                         local PID=`cat "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"`
-                        wait_for kill -0 "${PID}" 2> /dev/null
-                        if kill -0 "${PID}" 2> /dev/null; then
-                            printf "\xE2\x9D\x8C\n"
-                        else
+                        wait_for is_process_stopped "${PID}" 2> /dev/null
+                        if is_process_stopped "${PID}" 2> /dev/null; then
                             printf "\xE2\x9C\x85\n"
+                        else
+                            printf "\xE2\x9D\x8C\n"
                         fi
                     else
                         printf "\xE2\x9C\x85\n"
