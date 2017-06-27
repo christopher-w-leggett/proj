@@ -42,3 +42,5 @@ The following configurations can be added using the `proj config set ...` comman
 | aem.default.publish.debug.port    | The default debug port when installing a publish instance.                  |
 | aem.default.dispatcher.module     | The default dispatcher module to use when setting up a dispatcher instance. |
 | aem.status.timeout                | The timeout in seconds when checking AEM start status.                      |
+| aem.status.user                   | The AEM user for checking start status.                                     |
+| aem.status.password               | The AEM password for checking start status.                                 |

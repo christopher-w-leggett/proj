@@ -118,8 +118,10 @@ command_start(){
 
                     #TODO: Need configuration for user:pass used when checking startup status.
                     (
-                    wait_for_startup "${PROJ_NAME}" "localhost:${AEM_INSTANCE_PORT}" "admin:admin" 2> /dev/null
-                    if is_started "localhost:${AEM_INSTANCE_PORT}" "admin:admin" 2> /dev/null; then
+                    local USER=$(get_config "${PROJ_NAME}" "aem.status.user" "admin")
+                    local PASS=$(get_config "${PROJ_NAME}" "aem.status.password" "admin")
+                    wait_for_startup "${PROJ_NAME}" "localhost:${AEM_INSTANCE_PORT}" "${USER}:${PASS}" 2> /dev/null
+                    if is_started "localhost:${AEM_INSTANCE_PORT}" "${USER}:${PASS}" 2> /dev/null; then
                         #TODO: Need to verify we are Mac OSX before running this.
                         osascript -e "display notification \"'${AEM_INSTANCE_NAMES[$i]}' started.\" with title \"AEM Startup Status\""
                     else
