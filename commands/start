@@ -116,7 +116,6 @@ command_start(){
                     echo "Starting the ${AEM_INSTANCE_NAMES[$i]} AEM instance on port ${AEM_INSTANCE_PORT}"
                     CQ_PORT="${AEM_INSTANCE_PORT}" "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" > /dev/null 2>&1
 
-                    #TODO: Need configuration for user:pass used when checking startup status.
                     (
                     local USER=$(get_config "${PROJ_NAME}" "aem.status.user" "admin")
                     local PASS=$(get_config "${PROJ_NAME}" "aem.status.password" "admin")
