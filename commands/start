@@ -33,10 +33,10 @@ else:
 
 wait_for_startup(){
     local COUNT=1
-    #TODO: Pull timeout  from configuration instead.
-    local TIMEOUT=120
-    local DOMAIN_PORT="${1}"
-    local USER_PASS="${2}"
+    local PROJ_NAME="${1}"
+    local TIMEOUT=$(get_config "${PROJ_NAME}" "aem.status.timeout" "180")
+    local DOMAIN_PORT="${2}"
+    local USER_PASS="${3}"
 
     local stop=""
     trap 'stop="true"' INT
@@ -118,7 +118,7 @@ command_start(){
 
                     #TODO: Need configuration for user:pass used when checking startup status.
                     (
-                    wait_for_startup "localhost:${AEM_INSTANCE_PORT}" "admin:admin" 2> /dev/null
+                    wait_for_startup "${PROJ_NAME}" "localhost:${AEM_INSTANCE_PORT}" "admin:admin" 2> /dev/null
                     if is_started "localhost:${AEM_INSTANCE_PORT}" "admin:admin" 2> /dev/null; then
                         #TODO: Need to verify we are Mac OSX before running this.
                         osascript -e "display notification \"'${AEM_INSTANCE_NAMES[$i]}' started.\" with title \"AEM Startup Status\""
