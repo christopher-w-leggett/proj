@@ -188,3 +188,19 @@ expand_aliases(){
 
     eval $__RESULT='("${EXPANDED_NAMES[@]}")'
 }
+
+notify(){
+    local DISTRO="$(uname | tr '[:upper:]' '[:lower:]')"
+    if declare -f "_notify_${DISTRO}" > /dev/null; then
+        "_notify_${DISTRO}" "${1}" "${2}"
+    else
+        echo "${1} - ${2}"
+    fi
+}
+
+_notify_darwin(){
+    local TITLE=$1
+    local MESSAGE=$2
+
+    osascript -e "display notification \"${MESSAGE}\" with title \"${TITLE}\""
+}
