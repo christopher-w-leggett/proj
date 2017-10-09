@@ -4,7 +4,7 @@ command_status(){
     local PROJECT_STATUS_WRITTEN="n"
 
     # Grab process information
-    local PROCESS_INFO=`ps | grep quickstart`
+    local PROCESS_INFO=`ps -e | grep quickstart`
 
     # Loop through each project directory
     while IFS=  read -r -d $'\0'; do
