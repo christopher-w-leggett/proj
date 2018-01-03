@@ -4,7 +4,7 @@ command_profile(){
     local PROJ_NAME="${1}"
     shift
 
-    local AEM_INSTANCE_NAME="author"
+    local AEM_INSTANCE_NAME=$(get_config "${PROJ_NAME}" "aem.default.instance.name" "author")
     if [ $# -gt 0 ]; then
         AEM_INSTANCE_NAME="${1}"
     fi
@@ -13,7 +13,7 @@ command_profile(){
         local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
         if [ -d "${PROJ_DIR}" ]; then
-            local CQ_PID_FILE="${PROJ_DIR}/sites/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"
+            local CQ_PID_FILE="${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/conf/cq.pid"
             local AEM_RUNNING="n"
             if [ -f "${CQ_PID_FILE}" ]; then
                 local CQ_PID="`cat ${CQ_PID_FILE}`"
@@ -40,10 +40,10 @@ command_profile(){
 
 command_profile_help(){
     echo "USAGE"
-    echo "   ${PROGRAM_NAME} profile <project_name> [<aem_instance>]"
+    echo "   ${PROGRAM_NAME} profile <project_name> [<aem_instance_name>]"
     echo ""
     echo "DESCRIPTION"
-    echo "   The 'profile' command can be used to profile a project using the java provided jvisualvm.  If no aem_instance is provided, the default author instance is used."
+    echo "   The 'profile' command can be used to profile a project using the java provided jvisualvm.  If no aem_instance_name is provided, the configured default instance is used.  If no configured default exists, the author instance is used."
 }
 
 command_profile_help_short(){

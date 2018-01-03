@@ -1,7 +1,0 @@
-#!/bin/bash
-
-AEM_STOP_SCRIPT="${1}"
-
-#Add any project specific pre stop commands here
-"${AEM_STOP_SCRIPT}"
-#Add any project specific post stop commands here

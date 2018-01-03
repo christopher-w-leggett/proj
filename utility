@@ -4,3 +4,203 @@ project_directory(){
     echo "${PROJ_PROJECTS_HOME}/${1}"
 }
 
+is_process_stopped(){
+    local PID="${1}"
+
+    # kill -0 lets us know process is running, so reverse output
+    if kill -0 "${PID}" 2> /dev/null; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+wait_for(){
+    local i=1
+    local spinner="/-\|"
+    local displayed=""
+    local stop=""
+
+    trap 'stop="true"' INT
+
+    while true; do
+        if [ "true" == "${stop}" ]; then
+            break;
+        fi
+        if [ "true" == "${displayed}" ]; then
+            printf "\b"
+        fi
+        printf "${spinner:i++%${#spinner}:1}"
+        displayed="true"
+
+        if "$@"; then
+            break;
+        else
+            sleep 0.5
+        fi
+    done
+
+    trap - INT
+
+    if [ "true" == "${displayed}" ]; then
+        printf "\b \b"
+    fi
+}
+
+prompt_options(){
+    #Capture variable to store result into
+    local __RESULT=$1
+    shift
+
+    #Capture prompt values
+    local PROMPT_QUESTION="${1}"
+    local DEFAULT_VALUE="${2}"
+    local PROMPT_INPUT=": "
+    if [ "" != "${DEFAULT_VALUE}" ]; then
+        PROMPT_INPUT="[${DEFAULT_VALUE}]${PROMPT_INPUT}"
+    fi
+    shift 2
+
+    #Prompt question
+    echo "${PROMPT_QUESTION}"
+
+    #Prompt options
+    local COUNTER=1
+    for VALID_OPT in "$@"; do
+        echo "${COUNTER}) ${VALID_OPT}"
+        COUNTER=$[COUNTER + 1]
+    done
+
+    #Grab input
+    local VALUE=""
+    while [ "" == "${VALUE}" ]; do
+        local CHOSEN_OPT=""
+        echo -n "${PROMPT_INPUT}"
+        read CHOSEN_OPT
+
+        if [[ "" == "${CHOSEN_OPT}" && "" != "${DEFAULT_VALUE}" ]]; then
+            VALUE="${DEFAULT_VALUE}"
+        elif echo "${CHOSEN_OPT}" | grep '^[0-9]*$' >/dev/null; then
+            local OPT_COUNTER=1
+            for VALID_OPT in "$@"; do
+                if [ "${CHOSEN_OPT}" == "${OPT_COUNTER}" ]; then
+                    VALUE="${VALID_OPT}"
+                fi
+                OPT_COUNTER=$[OPT_COUNTER + 1]
+            done
+        fi
+
+        if [ "" == "${VALUE}" ]; then
+            echo "Invalid selection."
+        fi
+    done
+
+    eval $__RESULT="${VALUE}"
+}
+
+get_config(){
+    local PROJ_DIR=$(project_directory "${1}")
+    local PROJ_CONF_FILE="${PROJ_DIR}/.proj/proj.cfg"
+    local USER_CONF_FILE="${HOME}/.proj/proj.cfg"
+
+    if [ -d "${PROJ_DIR}" ]; then
+        #We found a project directory so shift parameters
+        shift
+    fi
+
+    local PROP_NAME="${1}"
+    local PROP_VALUE=""
+    local DEFAULT_VALUE="${2}"
+    if [ -f "${PROJ_CONF_FILE}" ]; then
+        #Found project configuration, try to pull from there.
+        PROP_VALUE=`cat "${PROJ_CONF_FILE}" | grep "${PROP_NAME}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'`
+    fi
+
+    if [[ -f "${USER_CONF_FILE}" && "" == "${PROP_VALUE}" ]]; then
+        #Value is empty, try to pull from user config
+        PROP_VALUE=`cat "${USER_CONF_FILE}" | grep "${PROP_NAME}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'`
+    fi
+
+    if [ "" == "${PROP_VALUE}" ]; then
+        #Value still empty, use default
+        PROP_VALUE="${DEFAULT_VALUE}"
+    fi
+
+    echo "${PROP_VALUE}"
+}
+
+set_config(){
+    local PROJ_DIR=$(project_directory "${1}")
+    local CONF_DIR="${HOME}/.proj"
+
+    if [ -d "${PROJ_DIR}" ]; then
+        #Found project directory, write to project configuration
+        CONF_DIR="${PROJ_DIR}/.proj"
+        shift
+    fi
+
+    local CONF_FILE="${CONF_DIR}/proj.cfg"
+    local PROP_NAME="${1}"
+    local PROP_VALUE="${2}"
+
+    mkdir -p "${CONF_DIR}"
+    touch "${CONF_FILE}"
+
+    if grep "${PROP_NAME}" "${CONF_FILE}" >/dev/null; then
+        #Replace property value
+        sed -i '' -e "s/${PROP_NAME}=.*/${PROP_NAME}=${PROP_VALUE}/g" "${CONF_FILE}"
+    else
+        #Append property
+        echo "${PROP_NAME}=${PROP_VALUE}" >> ${CONF_FILE}
+    fi
+}
+
+expand_aliases(){
+    local __RESULT=$1
+    local PROJ_DIR=$(project_directory "${2}")
+    shift 2
+
+    local EXPANDED_NAMES=()
+    #Loop through names and expand aliases
+    local ALIAS_FILE="${PROJ_DIR}/.proj/aliases"
+    for NAME in $@; do
+        #Attempt to find alias line in alias file
+        local ALIAS_LINE=""
+        if [ -f "${ALIAS_FILE}" ]; then
+            ALIAS_LINE=$(grep "${NAME}=" "${ALIAS_FILE}")
+        fi
+
+        if [ "" != "${ALIAS_LINE}" ]; then
+            #NAME matches an alias, so read instance names from alias file
+            local ALIASED_NAMES=($(echo -n "${ALIAS_LINE}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'))
+            for ALIASED_NAME in ${ALIASED_NAMES[@]}; do
+                if [[ " ${EXPANDED_NAMES[*]} " != *" ${ALIASED_NAME} "* ]]; then
+                    EXPANDED_NAMES+=("${ALIASED_NAME}")
+                fi
+            done
+        else
+            #NAME is aem instance name so read it directly
+            if [[ " ${EXPANDED_NAMES[*]} " != *" ${NAME} "* ]]; then
+                EXPANDED_NAMES+=("${NAME}")
+            fi
+        fi
+    done
+
+    eval $__RESULT='("${EXPANDED_NAMES[@]}")'
+}
+
+notify(){
+    local DISTRO="$(uname | tr '[:upper:]' '[:lower:]')"
+    if declare -f "_notify_${DISTRO}" > /dev/null; then
+        "_notify_${DISTRO}" "${1}" "${2}"
+    else
+        echo "${1} - ${2}"
+    fi
+}
+
+_notify_darwin(){
+    local TITLE=$1
+    local MESSAGE=$2
+
+    osascript -e "display notification \"${MESSAGE}\" with title \"${TITLE}\""
+}

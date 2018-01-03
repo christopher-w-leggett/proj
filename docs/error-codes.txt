@@ -6,6 +6,9 @@ Common:
 68 = Option ? requires an argument
 69 = PROJ_PROJECTS_HOME environment variable is not set
 
+Config:
+80 = get or set must be provided
+
 Init:
 80 = Project already exists
 
@@ -18,3 +21,13 @@ Stop:
 Setup-AEM:
 80 = No AEM jar provided
 81 = AEM instance already exists
+
+Setup-Dispatcher:
+80 = No dispatcher http module provided.
+81 = No AEM instances exist.
+82 = Unsupported OS.
+83 = Apache HTTP not installed.
+
+Alias:
+80 = list, set or delete must be provided
+81 = Alias name is missing
