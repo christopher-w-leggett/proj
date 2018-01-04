@@ -1,22 +1,18 @@
 #!/bin/bash
 
 command_list(){
-    if [[ -n "${PROJ_PROJECTS_HOME}" && "" != "${PROJ_PROJECTS_HOME}" ]]; then
-        find "${PROJ_PROJECTS_HOME}" -mindepth 1 -maxdepth 1 -type d -exec test -d {}/.proj \; -exec basename {} \;
-    else
-        echo "The PROJ_PROJECTS_HOME environment variable is not set.  Please set this to your projects root directory to list projects."
-        return 69
-    fi
+    local PROJECTS_DIR=$(get_config "" "proj.paths.projects" "")
+    find "${PROJECTS_DIR}" -mindepth 1 -maxdepth 1 -type d -exec test -d {}/.proj \; -exec basename {} \;
 }
 
 command_list_help(){
-    echo "USAGE"
-    echo "   ${PROGRAM_NAME} list"
-    echo ""
-    echo "DESCRIPTION"
-    echo "   The 'list' command is used to list all projects under the PROJ_PROJECTS_HOME directory that are currently being managed by proj."
+    printf "USAGE\n"
+    printf "   ${PROGRAM_NAME} list\n"
+    printf "\n"
+    printf "DESCRIPTION\n"
+    printf "   The 'list' command is used to list all projects that are currently being managed by proj.\n"
 }
 
 command_list_help_short(){
-    echo "Lists projects currently managed by proj."
+    printf "Lists projects currently managed by proj.\n"
 }

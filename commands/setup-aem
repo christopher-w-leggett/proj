@@ -8,20 +8,20 @@ _setup_aem(){
     local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
     # Define default values
-    local DEFAULT_INSTANCE_NAME=$(get_config "${PROJ_NAME}" "aem.default.instance.name" "author")
-    local DEFAULT_INSTANCE_TYPE=$(get_config "${PROJ_NAME}" "aem.default.instance.type" "author")
-    local DEFAULT_PRODUCTION_READY_MODE=$(get_config "${PROJ_NAME}" "aem.default.production.ready.mode" "No")
-    local DEFAULT_AUTHOR_PORT=$(get_config "${PROJ_NAME}" "aem.default.author.port" "4502")
-    local DEFAULT_PUBLISH_PORT=$(get_config "${PROJ_NAME}" "aem.default.publish.port" "4503")
-    local DEFAULT_AUTHOR_DEBUG_PORT=$(get_config "${PROJ_NAME}" "aem.default.author.debug.port" "30303")
-    local DEFAULT_PUBLISH_DEBUG_PORT=$(get_config "${PROJ_NAME}" "aem.default.publish.debug.port" "30304")
+    local DEFAULT_INSTANCE_NAME=$(get_config "${PROJ_DIR}" "aem.default.instance.name" "author")
+    local DEFAULT_INSTANCE_TYPE=$(get_config "${PROJ_DIR}" "aem.default.instance.type" "author")
+    local DEFAULT_PRODUCTION_READY_MODE=$(get_config "${PROJ_DIR}" "aem.default.production.ready.mode" "No")
+    local DEFAULT_AUTHOR_PORT=$(get_config "${PROJ_DIR}" "aem.default.author.port" "4502")
+    local DEFAULT_PUBLISH_PORT=$(get_config "${PROJ_DIR}" "aem.default.publish.port" "4503")
+    local DEFAULT_AUTHOR_DEBUG_PORT=$(get_config "${PROJ_DIR}" "aem.default.author.debug.port" "30303")
+    local DEFAULT_PUBLISH_DEBUG_PORT=$(get_config "${PROJ_DIR}" "aem.default.publish.debug.port" "30304")
 
     # Get AEM instance name
     local INSTANCE_NAME=""
     local INSTANCE_NAME_QUESTION="Please name this AEM instance [${DEFAULT_INSTANCE_NAME}]:"
     local INSTANCE_NAME_INPUT_MESSAGE="${INSTANCE_NAME_QUESTION}"
-    while echo "${INSTANCE_NAME}" | grep '^[0-9]*$' >/dev/null; do
-        echo "${INSTANCE_NAME_INPUT_MESSAGE}"
+    while printf "${INSTANCE_NAME}\n" | grep '^[0-9]*$' >/dev/null; do
+        printf "${INSTANCE_NAME_INPUT_MESSAGE}\n"
         read INSTANCE_NAME
         if [[ -z "${INSTANCE_NAME}" || "" == "${INSTANCE_NAME}" ]]; then
             INSTANCE_NAME="${DEFAULT_INSTANCE_NAME}"
@@ -30,7 +30,7 @@ _setup_aem(){
         INSTANCE_NAME_INPUT_MESSAGE="Instance name must contain letters.  ${INSTANCE_NAME_QUESTION}"
     done
     if [ -d "${PROJ_DIR}/sites/aem/${INSTANCE_NAME}" ]; then
-        echo "The ${INSTANCE_NAME} AEM instance already exists."
+        printf "The ${INSTANCE_NAME} AEM instance already exists.\n"
         return 81
     fi
 
@@ -42,7 +42,7 @@ _setup_aem(){
     local RUNMODES="${INSTANCE_TYPE}"
     local ADDITIONAL_RUNMODES=""
     if [[ -z "${ADDITIONAL_RUNMODES}" || "" == "${ADDITIONAL_RUNMODES}" ]]; then
-        echo "Enter any additional runmodes:"
+        printf "Enter any additional runmodes:\n"
         read ADDITIONAL_RUNMODES
     fi
     if [[ -n "${ADDITIONAL_RUNMODES}" && "" != "${ADDITIONAL_RUNMODES}" ]]; then
@@ -65,27 +65,27 @@ _setup_aem(){
     fi
 
     # Get port
-    echo "Enter the port [${PORT}]:"
+    printf "Enter the port [${PORT}]:\n"
     read USER_DEFINED_PORT
     if [[ -n "${USER_DEFINED_PORT}" && "" != "${USER_DEFINED_PORT}" ]]; then
         PORT="${USER_DEFINED_PORT}"
     fi
 
     # Get debug port
-    echo "Enter the debug port [${DEBUG_PORT}]:"
+    printf "Enter the debug port [${DEBUG_PORT}]:\n"
     read USER_DEFINED_DEBUG_PORT
     if [[ -n "${USER_DEFINED_DEBUG_PORT}" && "" != "${USER_DEFINED_DEBUG_PORT}" ]]; then
         DEBUG_PORT="${USER_DEFINED_DEBUG_PORT}"
     fi
 
     local PACKAGES=()
-    echo "Do you have any packages you want installed (blank value to stop adding packages)?"
+    printf "Do you have any packages you want installed (blank value to stop adding packages)?\n"
     read ADDED_PACKAGE
     while [[ -n "${ADDED_PACKAGE}" && "" != "${ADDED_PACKAGE}" ]]; do
         if [ -f "${ADDED_PACKAGE}" ]; then
             PACKAGES+=("${ADDED_PACKAGE}")
         else
-            echo "${ADDED_PACKAGE} is not a valid package."
+            printf "${ADDED_PACKAGE} is not a valid package.\n"
         fi
 
         read ADDED_PACKAGE
@@ -94,28 +94,28 @@ _setup_aem(){
     # Create install directory
     local INSTALL_DIR="${PROJ_DIR}/sites/aem/${INSTANCE_NAME}"
     if [ ! -d "${INSTALL_DIR}" ]; then
-        echo "Creating ${INSTALL_DIR}."
+        printf "Creating ${INSTALL_DIR}.\n"
         mkdir -p "${INSTALL_DIR}"
     fi
 
     # Setup AEM
-    echo "Copying ${AEM_JAR_PATH} to ${INSTALL_DIR}."
+    printf "Copying ${AEM_JAR_PATH} to ${INSTALL_DIR}.\n"
     cp "${AEM_JAR_PATH}" "${INSTALL_DIR}"
 
     local CURRENT_DIR=$(pwd)
 
-    echo "Switching to ${INSTALL_DIR} to unpack jar."
+    printf "Switching to ${INSTALL_DIR} to unpack jar.\n"
     cd "${INSTALL_DIR}"
     java -jar "${AEM_JAR_NAME}" -unpack &> /dev/null
 
-    echo "Jar unpacked, switching back to ${CURRENT_DIR}."
+    printf "Jar unpacked, switching back to ${CURRENT_DIR}.\n"
     cd "${CURRENT_DIR}"
 
     if [ ${#PACKAGES[@]} -ne 0 ]; then
         mkdir "${INSTALL_DIR}/crx-quickstart/install"
 
         for ((i = 0; i < ${#PACKAGES[@]}; i++)); do
-            echo "Copying package ${PACKAGES[$i]}."
+            printf "Copying package ${PACKAGES[$i]}.\n"
             cp "${PACKAGES[$i]}" "${INSTALL_DIR}/crx-quickstart/install"
         done
     fi
@@ -136,15 +136,15 @@ command_setup-aem(){
 
         if [ -d "${PROJ_DIR}" ]; then
             #Grab any configured default jar
-            local DEFAULT_AEM_JAR_PATH=$(get_config "${PROJ_NAME}" "aem.default.jar" "")
+            local DEFAULT_AEM_JAR_PATH=$(get_config "${PROJ_DIR}" "aem.default.jar" "")
 
             local SETUP_AEM="Yes"
             while [ "Yes" == "${SETUP_AEM}" ]; do
                 #Grab user input for AEM jar location
                 if [[ -z "${DEFAULT_AEM_JAR_PATH}" || "" == "${DEFAULT_AEM_JAR_PATH}" ]]; then
-                    echo "Provide path to AEM jar:"
+                    printf "Provide path to AEM jar:\n"
                 else
-                    echo "Provide path to AEM jar [${DEFAULT_AEM_JAR_PATH}]:"
+                    printf "Provide path to AEM jar [${DEFAULT_AEM_JAR_PATH}]:\n"
                 fi
                 local AEM_JAR_PATH=""
                 read AEM_JAR_PATH
@@ -161,7 +161,7 @@ command_setup-aem(){
 
                     _setup_aem "${AEM_JAR_PATH}" "${PROJ_NAME}"
                 else
-                    echo "No AEM jar provided, unable to setup AEM."
+                    printf "No AEM jar provided, unable to setup AEM.\n"
                     return 80
                 fi
 
@@ -169,23 +169,23 @@ command_setup-aem(){
                 prompt_options SETUP_AEM "Would you like to setup another AEM instance?" "No" "Yes" "No"
             done
         else
-            echo "The ${PROJ_NAME} project doesn't exists in directory ${PROJ_DIR}.  Please use '${PROGRAM_NAME} init ${PROJ_NAME}' to initialize the project."
+            printf "The ${PROJ_NAME} project doesn't exists in directory ${PROJ_DIR}.  Please use '${PROGRAM_NAME} init ${PROJ_NAME}' to initialize the project.\n"
             return 65
         fi
     else
-        echo "A project name is required to setup AEM in the project directory.  Use '${PROGRAM_NAME} help setup-aem' for help with the setup-aem command."
+        printf "A project name is required to setup AEM in the project directory.  Use '${PROGRAM_NAME} help setup-aem' for help with the setup-aem command.\n"
         return 64
     fi
 }
 
 command_setup-aem_help(){
-    echo "USAGE"
-    echo "   ${PROGRAM_NAME} setup-aem <project_name>"
-    echo ""
-    echo "DESCRIPTION"
-    echo "   The 'setup-aem' command is used to setup one or more AEM instances in an existing project."
+    printf "USAGE\n"
+    printf "   ${PROGRAM_NAME} setup-aem <project_name>\n"
+    printf "\n"
+    printf "DESCRIPTION\n"
+    printf "   The 'setup-aem' command is used to setup one or more AEM instances in an existing project.\n"
 }
 
 command_setup-aem_help_short(){
-    echo "Sets up one or more AEM instances."
+    printf "Sets up one or more AEM instances.\n"
 }

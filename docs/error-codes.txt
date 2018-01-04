@@ -4,10 +4,11 @@ Common:
 66 = Project not tracked by proj
 67 = Invalid option
 68 = Option ? requires an argument
-69 = PROJ_PROJECTS_HOME environment variable is not set
+69 = proj.paths.projects directory doesn't exist
 
 Config:
 80 = get or set must be provided
+81 = Property name must be provided
 
 Init:
 80 = Project already exists

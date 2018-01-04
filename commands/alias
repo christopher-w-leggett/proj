@@ -12,27 +12,31 @@ command_alias(){
     local ALIAS_FILE="${ALIAS_DIR}/aliases"
 
     if [ "list" == "${ACTION}" ]; then
-        if [ -f "${ALIAS_FILE}" ]; then
+        if [[ "" != "${PROJ_NAME}" && -f "${ALIAS_FILE}" ]]; then
             local ALIAS_WRITTEN="n"
             while read -r ALIAS_LINE || [[ -n "${ALIAS_LINE}" ]]; do
                 if [ "" != "${ALIAS_LINE}" ]; then
-                    local ALIAS_NAME=$(echo -n "${ALIAS_LINE}" | awk -F= '{ st = index($0,"=");print substr($0,0,st-1)}')
-                    local ALIASED_NAMES=($(echo -n "${ALIAS_LINE}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'))
+                    local ALIAS_NAME=$(printf "${ALIAS_LINE}" | awk -F= '{ st = index($0,"=");print substr($0,0,st-1)}')
+                    local ALIASED_NAMES=($(printf "${ALIAS_LINE}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'))
 
                     if [ "y" == "${ALIAS_WRITTEN}" ]; then
-                        echo ""
+                        printf "\n"
                     fi
 
-                    echo "${ALIAS_NAME}"
+                    printf "${ALIAS_NAME}\n"
                     for ALIASED_NAME in "${ALIASED_NAMES[@]}"; do
-                        echo " \`${ALIASED_NAME}"
+                        printf " \`${ALIASED_NAME}\n"
                     done
 
                     ALIAS_WRITTEN="y"
                 fi
             done < "${ALIAS_FILE}"
+
+            if [[ "n" == "${ALIAS_WRITTEN}" ]]; then
+                printf "No aliases defined.\n"
+            fi
         else
-            echo "No aliases defined."
+            printf "No aliases defined.\n"
         fi
     elif [[ "set" == "${ACTION}" || "delete" == "${ACTION}" ]]; then
         if [[ "" != "${ALIAS}" && "" != "${PROJ_NAME}" ]]; then
@@ -58,7 +62,7 @@ command_alias(){
                     sed -i '' -e "s/${ALIAS}=.*/${ALIAS}=${AEM_INSTANCE_NAMES}/g" "${ALIAS_FILE}"
                 else
                     #Append alias
-                    echo "${ALIAS}=${AEM_INSTANCE_NAMES}" >> ${ALIAS_FILE}
+                    printf "${ALIAS}=${AEM_INSTANCE_NAMES}\n" >> ${ALIAS_FILE}
                 fi
             elif [ -f "${ALIAS_FILE}" ]; then
                 if grep "${ALIAS}=" "${ALIAS_FILE}" >/dev/null; then
@@ -67,23 +71,23 @@ command_alias(){
                 fi
             fi
         else
-            echo "Alias name is required."
+            printf "Alias name is required.\n"
             return 81
         fi
     else
-        echo "list, set or delete must be provided."
+        printf "list, set or delete must be provided.\n"
         return 80
     fi
 }
 
 command_alias_help(){
-    echo "USAGE"
-    echo "   ${PROGRAM_NAME} alias list|set|delete <project_name> [<alias> [<aem_instance_name>...]]"
-    echo ""
-    echo "DESCRIPTION"
-    echo "   The 'alias' command is used to manage aliases for starting/stopping multiple AEM instances."
+    printf "USAGE\n"
+    printf "   ${PROGRAM_NAME} alias list|set|delete <project_name> [<alias> [<aem_instance_name>...]]\n"
+    printf "\n"
+    printf "DESCRIPTION\n"
+    printf "   The 'alias' command is used to manage aliases for starting/stopping multiple AEM instances.\n"
 }
 
 command_alias_help_short(){
-    echo "Manages aliases for starting/stopping multiple AEM instances."
+    printf "Manages aliases for starting/stopping multiple AEM instances.\n"
 }

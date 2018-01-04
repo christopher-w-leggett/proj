@@ -1,7 +1,11 @@
 #!/bin/bash
 
 project_directory(){
-    echo "${PROJ_PROJECTS_HOME}/${1}"
+    #Read projects path from user configuration
+    local PROJECTS_DIR=$(get_config "" "proj.paths.projects" "")
+
+    #return project directory.  proj.paths.projects config will always contain a value by the time this code runs.
+    printf "${PROJECTS_DIR}/${1}"
 }
 
 is_process_stopped(){
@@ -62,12 +66,12 @@ prompt_options(){
     shift 2
 
     #Prompt question
-    echo "${PROMPT_QUESTION}"
+    printf "${PROMPT_QUESTION}\n"
 
     #Prompt options
     local COUNTER=1
     for VALID_OPT in "$@"; do
-        echo "${COUNTER}) ${VALID_OPT}"
+        printf "${COUNTER}) ${VALID_OPT}\n"
         COUNTER=$[COUNTER + 1]
     done
 
@@ -75,12 +79,12 @@ prompt_options(){
     local VALUE=""
     while [ "" == "${VALUE}" ]; do
         local CHOSEN_OPT=""
-        echo -n "${PROMPT_INPUT}"
+        printf "${PROMPT_INPUT}"
         read CHOSEN_OPT
 
         if [[ "" == "${CHOSEN_OPT}" && "" != "${DEFAULT_VALUE}" ]]; then
             VALUE="${DEFAULT_VALUE}"
-        elif echo "${CHOSEN_OPT}" | grep '^[0-9]*$' >/dev/null; then
+        elif printf "${CHOSEN_OPT}" | grep '^[0-9]*$' >/dev/null; then
             local OPT_COUNTER=1
             for VALID_OPT in "$@"; do
                 if [ "${CHOSEN_OPT}" == "${OPT_COUNTER}" ]; then
@@ -91,7 +95,7 @@ prompt_options(){
         fi
 
         if [ "" == "${VALUE}" ]; then
-            echo "Invalid selection."
+            printf "Invalid selection.\n"
         fi
     done
 
@@ -99,23 +103,24 @@ prompt_options(){
 }
 
 get_config(){
-    local PROJ_DIR=$(project_directory "${1}")
-    local PROJ_CONF_FILE="${PROJ_DIR}/.proj/proj.cfg"
-    local USER_CONF_FILE="${HOME}/.proj/proj.cfg"
-
-    if [ -d "${PROJ_DIR}" ]; then
-        #We found a project directory so shift parameters
-        shift
-    fi
-
-    local PROP_NAME="${1}"
     local PROP_VALUE=""
-    local DEFAULT_VALUE="${2}"
-    if [ -f "${PROJ_CONF_FILE}" ]; then
-        #Found project configuration, try to pull from there.
-        PROP_VALUE=`cat "${PROJ_CONF_FILE}" | grep "${PROP_NAME}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'`
+
+    #Read parameters
+    local PROJ_DIR="${1}"
+    local PROP_NAME="${2}"
+    local DEFAULT_VALUE="${3}"
+
+    #Try to read configuration from project directory
+    if [[ "" != "${PROJ_DIR}" && -d "${PROJ_DIR}" ]]; then
+        local PROJ_CONF_FILE="${PROJ_DIR}/.proj/proj.cfg"
+
+        if [ -f "${PROJ_CONF_FILE}" ]; then
+            #Found project configuration, try to pull from there.
+            PROP_VALUE=`cat "${PROJ_CONF_FILE}" | grep "${PROP_NAME}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'`
+        fi
     fi
 
+    local USER_CONF_FILE="${HOME}/.proj/proj.cfg"
     if [[ -f "${USER_CONF_FILE}" && "" == "${PROP_VALUE}" ]]; then
         #Value is empty, try to pull from user config
         PROP_VALUE=`cat "${USER_CONF_FILE}" | grep "${PROP_NAME}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'`
@@ -126,22 +131,21 @@ get_config(){
         PROP_VALUE="${DEFAULT_VALUE}"
     fi
 
-    echo "${PROP_VALUE}"
+    printf "${PROP_VALUE}"
 }
 
 set_config(){
-    local PROJ_DIR=$(project_directory "${1}")
+    local PROJ_DIR="${1}"
     local CONF_DIR="${HOME}/.proj"
 
-    if [ -d "${PROJ_DIR}" ]; then
+    if [[ "" != "${PROJ_DIR}" && -d "${PROJ_DIR}" ]]; then
         #Found project directory, write to project configuration
         CONF_DIR="${PROJ_DIR}/.proj"
-        shift
     fi
 
     local CONF_FILE="${CONF_DIR}/proj.cfg"
-    local PROP_NAME="${1}"
-    local PROP_VALUE="${2}"
+    local PROP_NAME="${2}"
+    local PROP_VALUE="${3}"
 
     mkdir -p "${CONF_DIR}"
     touch "${CONF_FILE}"
@@ -151,13 +155,13 @@ set_config(){
         sed -i '' -e "s/${PROP_NAME}=.*/${PROP_NAME}=${PROP_VALUE}/g" "${CONF_FILE}"
     else
         #Append property
-        echo "${PROP_NAME}=${PROP_VALUE}" >> ${CONF_FILE}
+        printf "${PROP_NAME}=${PROP_VALUE}\n" >> ${CONF_FILE}
     fi
 }
 
 expand_aliases(){
     local __RESULT=$1
-    local PROJ_DIR=$(project_directory "${2}")
+    local PROJ_DIR="${2}"
     shift 2
 
     local EXPANDED_NAMES=()
@@ -172,7 +176,7 @@ expand_aliases(){
 
         if [ "" != "${ALIAS_LINE}" ]; then
             #NAME matches an alias, so read instance names from alias file
-            local ALIASED_NAMES=($(echo -n "${ALIAS_LINE}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'))
+            local ALIASED_NAMES=($(printf "${ALIAS_LINE}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'))
             for ALIASED_NAME in ${ALIASED_NAMES[@]}; do
                 if [[ " ${EXPANDED_NAMES[*]} " != *" ${ALIASED_NAME} "* ]]; then
                     EXPANDED_NAMES+=("${ALIASED_NAME}")
@@ -194,7 +198,7 @@ notify(){
     if declare -f "_notify_${DISTRO}" > /dev/null; then
         "_notify_${DISTRO}" "${1}" "${2}"
     else
-        echo "${1} - ${2}"
+        printf "${1} - ${2}\n"
     fi
 }
 

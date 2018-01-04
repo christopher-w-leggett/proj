@@ -1,26 +1,30 @@
 #!/bin/bash
 
+# TODO: Try to avoid using sudo.  Check user access before running and notify appropriately.
 _setup_dispatcher_darwin_check(){
     local STATUS=0
 
-    # Verify apachectl command exists (which apachectl >/dev/null; echo $?)
+    # Verify apachectl command exists (which apachectl >/dev/null; printf $?)
+    # TODO: Make this location configurable?
     if ! which apachectl > /dev/null; then
-        echo "Failed to locate apachectl command."
+        printf "Failed to locate apachectl command.\n"
         STATUS=83
     fi
 
+    # TODO: Make this location configurable
     if [ ! -f "/etc/apache2/httpd.conf" ]; then
-        echo "Failed to locate /etc/apache2/httpd.conf file."
+        printf "Failed to locate /etc/apache2/httpd.conf file.\n"
         STATUS=83
     fi
 
+    # TODO: Make this location configurable
     if [ ! -d "/etc/apache2/other" ]; then
-        echo "Failed to locate /etc/apache2/other directory."
+        printf "Failed to locate /etc/apache2/other directory.\n"
         STATUS=83
     fi
 
     if [ ! -f "/etc/hosts" ]; then
-        echo "Failed to locate /etc/hosts file."
+        printf "Failed to locate /etc/hosts file.\n"
         STATUS=83
     fi
 
@@ -46,7 +50,7 @@ _setup_dispatcher_darwin(){
         prompt_options INSTANCE_NAME "Which AEM instance would you like this apache dispatcher for?" "" ${AEM_INSTANCE_NAMES[@]}
 
         local DOMAIN_NAME="${INSTANCE_NAME}.${PROJ_NAME}.com"
-        echo "What domain name do you want to use for this dispatcher instance [${DOMAIN_NAME}]?"
+        printf "What domain name do you want to use for this dispatcher instance [${DOMAIN_NAME}]?\n"
         read USER_DEFINED_DOMAIN_NAME
         if [[ -n "${USER_DEFINED_DOMAIN_NAME}" && "" != "${USER_DEFINED_DOMAIN_NAME}" ]]; then
             DOMAIN_NAME="${USER_DEFINED_DOMAIN_NAME}"
@@ -57,19 +61,19 @@ _setup_dispatcher_darwin(){
 
         # Create directories
         if [ ! -d "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}" ]; then
-            echo "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}."
+            printf "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}.\n"
             mkdir -p "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}"
         fi
         if [ ! -d "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf" ]; then
-            echo "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf."
+            printf "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf.\n"
             mkdir "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf"
         fi
         if [ ! -d "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/log" ]; then
-            echo "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/log."
+            printf "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/log.\n"
             mkdir "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/log"
         fi
         if [ ! -d "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www" ]; then
-            echo "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www."
+            printf "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www.\n"
             mkdir "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www"
             chmod 775 "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www"
             sudo chgrp _www "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www"
@@ -80,8 +84,9 @@ _setup_dispatcher_darwin(){
         local PROJ_DIR_REPLACE="${PROJ_DIR//\//\\/}"
 
         # Setup site httpd configuration
+        # TODO: Location to store dispatcher config should be configurable.
         if [ ! -f "/etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf" ]; then
-            echo "Copying site httpd configuration ${PROGRAM_DIR}/templates/disp.conf.template to /etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf."
+            printf "Copying site httpd configuration ${PROGRAM_DIR}/templates/disp.conf.template to /etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf.\n"
             sudo cp "${PROGRAM_DIR}/templates/disp.conf.template" "/etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf"
 
             # Configure site httpd configuration
@@ -93,7 +98,7 @@ _setup_dispatcher_darwin(){
 
         # Setup dispatcher.any file
         if [ ! -f "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any" ]; then
-            echo "Copying dispatcher configuration ${PROGRAM_DIR}/templates/dispatcher.any.template to ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any."
+            printf "Copying dispatcher configuration ${PROGRAM_DIR}/templates/dispatcher.any.template to ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any.\n"
             sudo cp "${PROGRAM_DIR}/templates/dispatcher.any.template" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any"
 
             # Configure site httpd configuration
@@ -106,16 +111,17 @@ _setup_dispatcher_darwin(){
         # Append domain to hosts file if it doesn't exist.
         local DOMAIN_PATTERN="${DOMAIN_NAME//./\.}"
         if grep "${DOMAIN_PATTERN}" "/etc/hosts" >/dev/null; then
-            echo 'Domain already found in hosts file.'
+            printf 'Domain already found in hosts file.\n'
         else
             local DOMAIN_ENTRY="127.0.0.1 ${DOMAIN_NAME}"
-            sudo -- sh -c "echo '${DOMAIN_ENTRY}' >> /etc/hosts"
+            sudo -- sh -c "printf '${DOMAIN_ENTRY}\n' >> /etc/hosts"
         fi
 
         # Cycle Apache
+        # TODO: Make apachectl location configurable???
         sudo apachectl -k graceful
     else
-        echo "Unable to setup dispatcher module.  No AEM instances exist.  Please setup an AEM instance first."
+        printf "Unable to setup dispatcher module.  No AEM instances exist.  Please setup an AEM instance first.\n"
         return 81
     fi
 }
@@ -132,15 +138,15 @@ command_setup-dispatcher(){
             if declare -f "_setup_dispatcher_${DISTRO}_check" > /dev/null; then
                 if "_setup_dispatcher_${DISTRO}_check"; then
                     #Grab any configured default dispatcher module
-                    local DEFAULT_DISPATCHER_MODULE_PATH=$(get_config "${PROJ_NAME}" "aem.default.dispatcher.module" "")
+                    local DEFAULT_DISPATCHER_MODULE_PATH=$(get_config "${PROJ_DIR}" "aem.default.dispatcher.module" "")
 
                     local SETUP_DISPATCHER="Yes"
                     while [ "Yes" == "${SETUP_DISPATCHER}" ]; do
                         #Grab user input for dispatcher module location
                         if [[ -z "${DEFAULT_DISPATCHER_MODULE_PATH}" || "" == "${DEFAULT_DISPATCHER_MODULE_PATH}" ]]; then
-                            echo "Provide path to the dispatcher http module:"
+                            printf "Provide path to the dispatcher http module:\n"
                         else
-                            echo "Provide path to the dispatcher http module [${DEFAULT_DISPATCHER_MODULE_PATH}]:"
+                            printf "Provide path to the dispatcher http module [${DEFAULT_DISPATCHER_MODULE_PATH}]:\n"
                         fi
                         local DISPATCHER_MODULE_PATH=""
                         read DISPATCHER_MODULE_PATH
@@ -161,7 +167,7 @@ command_setup-dispatcher(){
                                 return ${SETUP_STATUS}
                             fi
                         else
-                            echo "No dispatcher http module provided, unable to setup AEM."
+                            printf "No dispatcher http module provided, unable to setup AEM.\n"
                             return 80
                         fi
 
@@ -169,31 +175,31 @@ command_setup-dispatcher(){
                         prompt_options SETUP_DISPATCHER "Would you like to setup another apache dispatcher instance?" "No" "Yes" "No"
                     done
                 else
-                    echo "Apache doesn't appear to be installed or expected directory structure doesn't exist."
+                    printf "Apache doesn't appear to be installed or expected directory structure doesn't exist.\n"
                     return 83
                 fi
             else
-                echo "Setting up dispatcher on $(uname) not supported."
+                printf "Setting up dispatcher on $(uname) not supported.\n"
                 return 82
             fi
         else
-            echo "The ${PROJ_NAME} project doesn't exists in directory ${PROJ_DIR}.  Please use '${PROGRAM_NAME} init ${PROJ_NAME}' to initialize the project."
+            printf "The ${PROJ_NAME} project doesn't exists in directory ${PROJ_DIR}.  Please use '${PROGRAM_NAME} init ${PROJ_NAME}' to initialize the project.\n"
             return 65
         fi
     else
-        echo "A project name is required to setup the Apache Dispatcher in the project directory.  Use '${PROGRAM_NAME} help setup-dispatcher' for help with the setup-dispatcher command."
+        printf "A project name is required to setup the Apache Dispatcher in the project directory.  Use '${PROGRAM_NAME} help setup-dispatcher' for help with the setup-dispatcher command.\n"
         return 64
     fi
 }
 
 command_setup-dispatcher_help(){
-    echo "USAGE"
-    echo "   ${PROGRAM_NAME} setup-dispatcher <project_name>"
-    echo ""
-    echo "DESCRIPTION"
-    echo "   The 'setup-dispatcher' command is used to configure the Apache Dispatcher for one or more AEM instances in an existing project."
+    printf "USAGE\n"
+    printf "   ${PROGRAM_NAME} setup-dispatcher <project_name>\n"
+    printf "\n"
+    printf "DESCRIPTION\n"
+    printf "   The 'setup-dispatcher' command is used to configure the Apache Dispatcher for one or more AEM instances in an existing project.\n"
 }
 
 command_setup-dispatcher_help_short(){
-    echo "Configures Apache Dispatcher for one or more AEM instances."
+    printf "Configures Apache Dispatcher for one or more AEM instances.\n"
 }

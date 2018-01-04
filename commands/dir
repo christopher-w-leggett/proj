@@ -8,28 +8,29 @@ command_dir(){
 
         if [ -d "${PROJ_DIR}" ]; then
             if [ -d "${PROJ_DIR}/.proj" ]; then
-                echo "${PROJ_DIR}"
+                printf "${PROJ_DIR}\n"
             else
-                echo "The ${PROJ_NAME} project appears to be located at ${PROJ_DIR}, but is not currently tracked by proj."
+                printf "The ${PROJ_NAME} project appears to be located at ${PROJ_DIR}, but is not currently tracked by proj.\n"
                 return 66
             fi
         else
-            echo "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}."
+            printf "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}.\n"
             return 65
         fi
     else
-        echo "${PROJ_PROJECTS_HOME}"
+        local PROJECTS_DIR=$(get_config "" "proj.paths.projects" "")
+        printf "${PROJECTS_DIR}\n"
     fi
 }
 
 command_dir_help(){
-    echo "USAGE"
-    echo "   ${PROGRAM_NAME} dir [<project_name>]"
-    echo ""
-    echo "DESCRIPTION"
-    echo "   The 'dir' command can be used to output a project directory using the project's name.  If no project name is provided, the base project directory will be printed."
+    printf "USAGE\n"
+    printf "   ${PROGRAM_NAME} dir [<project_name>]\n"
+    printf "\n"
+    printf "DESCRIPTION\n"
+    printf "   The 'dir' command can be used to output a project directory using the project's name.  If no project name is provided, the base project directory will be printed.\n"
 }
 
 command_dir_help_short(){
-    echo "Displays a project's directory."
+    printf "Displays a project's directory.\n"
 }

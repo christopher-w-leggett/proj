@@ -7,35 +7,35 @@ command_init(){
         local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
         if [ ! -d "${PROJ_DIR}" ]; then
-            echo "Creating ${PROJ_DIR}."
+            printf "Creating ${PROJ_DIR}.\n"
             mkdir "${PROJ_DIR}"
             cp -r "${PROGRAM_DIR}/.proj" "${PROJ_DIR}/.proj"
-            echo "Creating ${PROJ_DIR}/code."
+            printf "Creating ${PROJ_DIR}/code.\n"
             mkdir "${PROJ_DIR}/code"
-            echo "Creating ${PROJ_DIR}/dependencies."
+            printf "Creating ${PROJ_DIR}/dependencies.\n"
             mkdir "${PROJ_DIR}/dependencies"
-            echo "Creating ${PROJ_DIR}/documents."
+            printf "Creating ${PROJ_DIR}/documents.\n"
             mkdir "${PROJ_DIR}/documents"
 
-            echo "Project structure created at ${PROJ_DIR}"
+            printf "Project structure created at ${PROJ_DIR}.\n"
         else
-            echo "The ${PROJ_NAME} project already exists in directory ${PROJ_DIR}."
+            printf "The ${PROJ_NAME} project already exists at directory ${PROJ_DIR}.\n"
             return 80
         fi
     else
-        echo "A project name is required to initialize the project directory.  Use '${PROGRAM_NAME} help init' for help with the init command."
+        printf "A project name is required to initialize the project directory.  Use '${PROGRAM_NAME} help init' for help with the init command.\n"
         return 64
     fi
 }
 
 command_init_help(){
-    echo "USAGE"
-    echo "   ${PROGRAM_NAME} init <project_name>"
-    echo ""
-    echo "DESCRIPTION"
-    echo "   The 'init' command can be used to initialize a new project.  This command will setup a default directory structure for a new project."
+    printf "USAGE\n"
+    printf "   ${PROGRAM_NAME} init <project_name>\n"
+    printf "\n"
+    printf "DESCRIPTION\n"
+    printf "   The 'init' command can be used to initialize a new project.  This command will setup a default directory structure for a new project.\n"
 }
 
 command_init_help_short(){
-    echo "Initializes a project's directory structure."
+    printf "Initializes a project's directory structure.\n"
 }

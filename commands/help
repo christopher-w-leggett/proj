@@ -21,14 +21,14 @@ command_help(){
         done
         ((MAX_COMMAND_NAME_LENGTH+=3))
 
-        echo "usage: ${PROGRAM_NAME} [-v] [help] <command> [<command>...] [<args>]"
-        echo ""
-        echo "Commands:"
+        printf "usage: ${PROGRAM_NAME} [-v] [help] <command> [<command>...] [<args>]\n"
+        printf "\n"
+        printf "Commands:\n"
         for VALID_COMMAND in ${VALID_COMMANDS[@]}; do
             printf "   %-${MAX_COMMAND_NAME_LENGTH}s $(command_${VALID_COMMAND}_help_short)\n" "${VALID_COMMAND}"
         done
-        echo ""
-        echo "Use '${PROGRAM_NAME} help <command> [<command>...]' for help with specific commands."
-        echo ""
+        printf "\n"
+        printf "Use '${PROGRAM_NAME} help <command> [<command>...]' for help with specific commands.\n"
+        printf "\n"
     fi
 }
