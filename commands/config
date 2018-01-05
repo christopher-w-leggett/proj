@@ -21,18 +21,18 @@ command_config(){
 
     #verify arguments
     if [[ "get" != "${ACTION}" && "set" != "${ACTION}" ]]; then
-        printf "get or set must be provided.  Use '${PROGRAM_NAME} help config' for help with the config command.\n"
+        printf '%s\n' "get or set must be provided.  Use '${PROGRAM_NAME} help config' for help with the config command."
         return 80
     fi
     local PROPERTY_NAME="${1}"
     if [ "" == "${PROPERTY_NAME}" ]; then
-        printf "Property name must be provided.  Use '${PROGRAM_NAME} help config' for help with the config command.\n"
+        printf '%s\n' "Property name must be provided.  Use '${PROGRAM_NAME} help config' for help with the config command."
         return 81
     fi
 
     if [ "get" == "${ACTION}" ]; then
         local PROP_VALUE=$(get_config "${PROJ_DIR}" "$@")
-        printf "${PROP_VALUE}\n"
+        printf '%s\n' "${PROP_VALUE}"
     else
         set_config "${PROJ_DIR}" "$@"
     fi

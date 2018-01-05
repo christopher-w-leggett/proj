@@ -7,15 +7,15 @@ command_init(){
         local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
         if [ ! -d "${PROJ_DIR}" ]; then
-            printf "Creating ${PROJ_DIR}.\n"
-            mkdir "${PROJ_DIR}"
-            cp -r "${PROGRAM_DIR}/.proj" "${PROJ_DIR}/.proj"
-            printf "Creating ${PROJ_DIR}/code.\n"
-            mkdir "${PROJ_DIR}/code"
-            printf "Creating ${PROJ_DIR}/dependencies.\n"
-            mkdir "${PROJ_DIR}/dependencies"
-            printf "Creating ${PROJ_DIR}/documents.\n"
-            mkdir "${PROJ_DIR}/documents"
+            ensure_project_directory "${PROJ_NAME}"
+            ensure_project_directory "${PROJ_NAME}" ".proj"
+            ensure_project_directory "${PROJ_NAME}" "code"
+            ensure_project_directory "${PROJ_NAME}" "dependencies"
+            ensure_project_directory "${PROJ_NAME}" "documents"
+
+            local HIDDEN_PROJ_DIR=$(project_directory "${PROJ_NAME}" ".proj")
+            printf '%s\n' "Copying initial system files to ${HIDDEN_PROJ_DIR}."
+            cp -r "${PROGRAM_DIR}/.proj"/* "${HIDDEN_PROJ_DIR}"
 
             printf "Project structure created at ${PROJ_DIR}.\n"
         else

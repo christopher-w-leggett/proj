@@ -9,6 +9,7 @@ command_alias(){
 
     local PROJ_DIR=$(project_directory "${PROJ_NAME}")
     local ALIAS_DIR="${PROJ_DIR}/.proj"
+    #TODO: Make sure .proj exists and create if not in case alternative is provided. (Rename to HIDDEN_PROJ_DIR)
     local ALIAS_FILE="${ALIAS_DIR}/aliases"
 
     if [ "list" == "${ACTION}" ]; then

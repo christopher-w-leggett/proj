@@ -59,7 +59,7 @@ _setup_dispatcher_darwin(){
         # Find port of AEM instance
         local PORT=`grep '^\tCQ_PORT=[0-9]*$' "${PROJ_DIR}/sites/aem/${INSTANCE_NAME}/crx-quickstart/bin/start" | awk -F = '{print $2}'`
 
-        # Create directories
+        # Create directories TODO: First make sites directory if case alternate has been provided
         if [ ! -d "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}" ]; then
             printf "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}.\n"
             mkdir -p "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}"

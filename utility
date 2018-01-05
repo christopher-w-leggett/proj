@@ -1,11 +1,82 @@
 #!/bin/bash
 
+# Returns the absolute path to the project directory for the provided project name and relative path.  The
+# returned directory isn't guaranteed to exist.
 project_directory(){
-    #Read projects path from user configuration
+    #Read arguments
+    local PROJ_NAME="${1}"
+    local RELATIVE_DIR="${2}"
+
+    #Read projects path from user configuration.  This will always have a value or proj won't run.
     local PROJECTS_DIR=$(get_config "" "proj.paths.projects" "")
 
     #return project directory.  proj.paths.projects config will always contain a value by the time this code runs.
-    printf "${PROJECTS_DIR}/${1}"
+    local FINAL_DIR=""
+    if [ "" == "${RELATIVE_DIR}" ]; then
+        FINAL_DIR="${PROJECTS_DIR}/${PROJ_NAME}"
+    else
+        #determine directory name of first subdirectory
+        local FIRST_SUBDIR_NAME=$(printf '%s' "${RELATIVE_DIR}" | awk -F/ '{print $1}')
+
+        #get directory configuration (replacing any [[PROJ_NAME]] tokens) and if set,
+        #determine actual directory path for this subdirectory
+        local ABSOLUTE_ROOT_DIR="${PROJECTS_DIR}/${PROJ_NAME}"
+        local SUBDIR_CONFIG=$(get_config "" "proj.paths.alternate.${FIRST_SUBDIR_NAME}" "")
+        SUBDIR_CONFIG="${SUBDIR_CONFIG//\[\[PROJ_NAME\]\]/${PROJ_NAME}}"
+        if [[ "${SUBDIR_CONFIG}" == "->"* ]]; then
+            ABSOLUTE_ROOT_DIR=$(printf '%s' "${SUBDIR_CONFIG}" | awk -F'->' '{ print $2 }')
+        fi
+
+        #return final path
+        FINAL_DIR="${ABSOLUTE_ROOT_DIR}/${RELATIVE_DIR}"
+    fi
+
+    printf '%s' "${FINAL_DIR}"
+}
+
+# Returns the absolute path to a project directory for the provided project name.  If the subdirectory doesn't exit,
+# it is created.
+ensure_project_directory(){
+    #Read arguments
+    local PROJ_NAME="${1}"
+    local RELATIVE_DIR="${2}"
+
+    #Read projects path from user configuration.  This will always have a value or proj won't run.
+    local PROJECTS_DIR=$(get_config "" "proj.paths.projects" "")
+
+    #return project directory.  proj.paths.projects config will always contain a value by the time this code runs.
+    local FINAL_DIR=""
+    local FIRST_SUBDIR=""
+    local LINK_DIR=""
+    if [ "" == "${RELATIVE_DIR}" ]; then
+        FINAL_DIR="${PROJECTS_DIR}/${PROJ_NAME}"
+    else
+        #determine directory name of first subdirectory
+        local FIRST_SUBDIR_NAME=$(printf '%s' "${RELATIVE_DIR}" | awk -F/ '{print $1}')
+        LINK_DIR="${PROJECTS_DIR}/${PROJ_NAME}/${FIRST_SUBDIR_NAME}"
+
+        #get directory configuration (replacing any [[PROJ_NAME]] tokens) and if set,
+        #determine actual directory path for this subdirectory
+        local ABSOLUTE_ROOT_DIR="${PROJECTS_DIR}/${PROJ_NAME}"
+        local SUBDIR_CONFIG=$(get_config "" "proj.paths.alternate.${FIRST_SUBDIR_NAME}" "")
+        SUBDIR_CONFIG="${SUBDIR_CONFIG//\[\[PROJ_NAME\]\]/${PROJ_NAME}}"
+        if [[ "${SUBDIR_CONFIG}" == "->"* ]]; then
+            ABSOLUTE_ROOT_DIR=$(printf '%s' "${SUBDIR_CONFIG}" | awk -F'->' '{ print $2 }')
+        fi
+
+        #return final path
+        FINAL_DIR="${ABSOLUTE_ROOT_DIR}/${RELATIVE_DIR}"
+        FIRST_SUBDIR="${ABSOLUTE_ROOT_DIR}/${FIRST_SUBDIR_NAME}"
+    fi
+
+    if [[ "" != "${FINAL_DIR}" && ! -d "${FINAL_DIR}" ]]; then
+        printf '%s\n' "Creating ${FINAL_DIR}."
+        mkdir -p "${FINAL_DIR}"
+    fi
+    if [[ "" != "${LINK_DIR}" && ! -d "${LINK_DIR}" ]]; then
+        printf '%s\n' "Linking ${LINK_DIR} to ${FIRST_SUBDIR}."
+        ln -s "${FIRST_SUBDIR}" "${LINK_DIR}"
+    fi
 }
 
 is_process_stopped(){
@@ -66,12 +137,12 @@ prompt_options(){
     shift 2
 
     #Prompt question
-    printf "${PROMPT_QUESTION}\n"
+    printf '%s\n' "${PROMPT_QUESTION}"
 
     #Prompt options
     local COUNTER=1
     for VALID_OPT in "$@"; do
-        printf "${COUNTER}) ${VALID_OPT}\n"
+        printf '%s\n' "${COUNTER}) ${VALID_OPT}"
         COUNTER=$[COUNTER + 1]
     done
 
@@ -79,12 +150,12 @@ prompt_options(){
     local VALUE=""
     while [ "" == "${VALUE}" ]; do
         local CHOSEN_OPT=""
-        printf "${PROMPT_INPUT}"
+        printf '%s' "${PROMPT_INPUT}"
         read CHOSEN_OPT
 
         if [[ "" == "${CHOSEN_OPT}" && "" != "${DEFAULT_VALUE}" ]]; then
             VALUE="${DEFAULT_VALUE}"
-        elif printf "${CHOSEN_OPT}" | grep '^[0-9]*$' >/dev/null; then
+        elif printf '%s' "${CHOSEN_OPT}" | grep '^[0-9]*$' >/dev/null; then
             local OPT_COUNTER=1
             for VALID_OPT in "$@"; do
                 if [ "${CHOSEN_OPT}" == "${OPT_COUNTER}" ]; then
@@ -95,7 +166,7 @@ prompt_options(){
         fi
 
         if [ "" == "${VALUE}" ]; then
-            printf "Invalid selection.\n"
+            printf '%s\n' "Invalid selection."
         fi
     done
 
@@ -131,7 +202,7 @@ get_config(){
         PROP_VALUE="${DEFAULT_VALUE}"
     fi
 
-    printf "${PROP_VALUE}"
+    printf '%s' "${PROP_VALUE}"
 }
 
 set_config(){
@@ -141,21 +212,30 @@ set_config(){
     if [[ "" != "${PROJ_DIR}" && -d "${PROJ_DIR}" ]]; then
         #Found project directory, write to project configuration
         CONF_DIR="${PROJ_DIR}/.proj"
+
+        #TODO make .proj directory if needed in case alternate has been provided.
     fi
 
     local CONF_FILE="${CONF_DIR}/proj.cfg"
     local PROP_NAME="${2}"
     local PROP_VALUE="${3}"
 
-    mkdir -p "${CONF_DIR}"
-    touch "${CONF_FILE}"
+    if [ ! -d "${CONF_DIR}" ]; then
+        mkdir -p "${CONF_DIR}"
+    fi
+    if [ ! -f "${CONF_FILE}" ]; then
+        touch "${CONF_FILE}"
+    fi
 
     if grep "${PROP_NAME}" "${CONF_FILE}" >/dev/null; then
         #Replace property value
-        sed -i '' -e "s/${PROP_NAME}=.*/${PROP_NAME}=${PROP_VALUE}/g" "${CONF_FILE}"
+        local PROP_VALUE_ESCAPED="${PROP_VALUE//\[/\\[}"
+        PROP_VALUE_ESCAPED="${PROP_VALUE_ESCAPED//\]/\\]}"
+        PROP_VALUE_ESCAPED="${PROP_VALUE_ESCAPED//\//\\/}"
+        sed -i '' -e "s/${PROP_NAME}=.*/${PROP_NAME}=${PROP_VALUE_ESCAPED}/g" "${CONF_FILE}"
     else
         #Append property
-        printf "${PROP_NAME}=${PROP_VALUE}\n" >> ${CONF_FILE}
+        printf '%s\n' "${PROP_NAME}=${PROP_VALUE}" >> ${CONF_FILE}
     fi
 }
 
@@ -176,7 +256,7 @@ expand_aliases(){
 
         if [ "" != "${ALIAS_LINE}" ]; then
             #NAME matches an alias, so read instance names from alias file
-            local ALIASED_NAMES=($(printf "${ALIAS_LINE}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'))
+            local ALIASED_NAMES=($(printf '%s' "${ALIAS_LINE}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'))
             for ALIASED_NAME in ${ALIASED_NAMES[@]}; do
                 if [[ " ${EXPANDED_NAMES[*]} " != *" ${ALIASED_NAME} "* ]]; then
                     EXPANDED_NAMES+=("${ALIASED_NAME}")
@@ -198,7 +278,7 @@ notify(){
     if declare -f "_notify_${DISTRO}" > /dev/null; then
         "_notify_${DISTRO}" "${1}" "${2}"
     else
-        printf "${1} - ${2}\n"
+        printf '%s\n' "${1} - ${2}"
     fi
 }
 

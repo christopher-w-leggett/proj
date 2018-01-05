@@ -91,6 +91,8 @@ _setup_aem(){
         read ADDED_PACKAGE
     done
 
+    #TODO: First make sites directory in case alternate has been provided.
+
     # Create install directory
     local INSTALL_DIR="${PROJ_DIR}/sites/aem/${INSTANCE_NAME}"
     if [ ! -d "${INSTALL_DIR}" ]; then

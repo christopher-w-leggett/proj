@@ -29,18 +29,19 @@ As mentioned earlier Proj is just a collection of bash scripts that are organize
 ## Configurations
 The following configurations can be added using the `proj config set ...` command.
 
-| Configuration                     | Description                                                                    |
-| --------------------------------- | ------------------------------------------------------------------------------ |
-| aem.default.jar                   | The default AEM jar to use when setting up a new AEM instance.                 |
-| aem.default.instance.name         | The default AEM instance name.                                                 |
-| aem.default.instance.type         | The default AEM instance type.                                                 |
-| aem.default.production.ready.mode | The default value when prompted to install AEM in production ready mode.       |
-| aem.default.author.port           | The default port when installing an author instance.                           |
-| aem.default.author.debug.port     | The default debug port when installing an author instance.                     |
-| aem.default.publish.port          | The default port when installing a publish instance.                           |
-| aem.default.publish.debug.port    | The default debug port when installing a publish instance.                     |
-| aem.default.dispatcher.module     | The default dispatcher module to use when setting up a dispatcher instance.    |
-| aem.status.timeout                | The timeout in seconds when checking AEM start status.                         |
-| aem.status.user                   | The AEM user for checking start status.                                        |
-| aem.status.password               | The AEM password for checking start status.                                    |
+| Configuration                     | Description |
+| --------------------------------- | ----------- |
+| aem.default.jar                   | The default AEM jar to use when setting up a new AEM instance. |
+| aem.default.instance.name         | The default AEM instance name. |
+| aem.default.instance.type         | The default AEM instance type. |
+| aem.default.production.ready.mode | The default value when prompted to install AEM in production ready mode. |
+| aem.default.author.port           | The default port when installing an author instance. |
+| aem.default.author.debug.port     | The default debug port when installing an author instance. |
+| aem.default.publish.port          | The default port when installing a publish instance. |
+| aem.default.publish.debug.port    | The default debug port when installing a publish instance. |
+| aem.default.dispatcher.module     | The default dispatcher module to use when setting up a dispatcher instance. |
+| aem.status.timeout                | The timeout in seconds when checking AEM start status. |
+| aem.status.user                   | The AEM user for checking start status. |
+| aem.status.password               | The AEM password for checking start status. |
 | proj.paths.projects               | The directory where managed projects will be stored.  This config is required. |
+| proj.paths.alternate.`<dir-name>` | A configuration specifying how to create a project subdirectory.  This allows creating a project directory in an alternate location and linking to it from the proj managed directory or vice versa.  A config of "->/some/alt/path/`[[PROJ_NAME]]`" will create the project directory at /some/alt/path/`[[PROJ_NAME]]`/`<dir-name>` and create a symlink pointing to this location with name `<dir-name>` directly in the managed project directory.  A config of "/some/alt/path/`[[PROJ_NAME]]`->" will create the project directory within the managed project directory with name `<dir-name>` and create a symlink at "/some/alt/path/`[[PROJ_NAME]]`/`<dir-name>`" pointing to this location.  `[[PROJ_NAME]]` is replaced with the project name at runtime.  `<dir-name>` represents the name of the immediate subdirectory being created. |
