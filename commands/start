@@ -72,6 +72,8 @@ command_start(){
             #Gather aem instance names and ports as entered
             local AEM_DEFAULT_INSTANCE_NAME=$(get_config "${PROJ_DIR}" "aem.default.instance.name" "author")
             local AEM_INSTANCE_NAMES=("${AEM_DEFAULT_INSTANCE_NAME}")
+            local AEM_INSTANCES_WITH_PORT=()
+            local AEM_INSTANCE_PORTS=()
             if [ $# -gt 0 ]; then
                 AEM_INSTANCE_NAMES=()
                 while printf "${1}" | grep '[^0-9]' >/dev/null; do
@@ -80,11 +82,8 @@ command_start(){
                     shift
 
                     if printf "${1}" | grep '^[0-9]\+$' >/dev/null; then
-                        #ASSOCIATIVE ARRAY HACK TODO: Doesn't work with special characters in aem instance name
-                        local PORT_VAR="ports_${AEM_INSTANCE_NAME}"
-                        if [ -z "${!PORT_VAR+x}" ]; then
-                            declare "${PORT_VAR}=${1}"
-                        fi
+                        AEM_INSTANCES_WITH_PORT+=("${AEM_INSTANCE_NAME}")
+                        AEM_INSTANCE_PORTS+=("${1}")
 
                         shift
                     fi
@@ -104,12 +103,15 @@ command_start(){
 
                     #Get port
                     local AEM_INSTANCE_PORT=""
-                    #ASSOCIATIVE ARRAY HACK TODO: Doesn't work with special characters in aem instance name
-                    local PORT_VAR="ports_${AEM_INSTANCE_NAMES[$i]}"
-                    if [ -z "${!PORT_VAR+x}" ]; then
+                    for j in ${!AEM_INSTANCES_WITH_PORT[@]}; do
+                        if [[ "${AEM_INSTANCE_NAMES[$i]}" == "${AEM_INSTANCES_WITH_PORT[$j]}" ]]; then
+                            AEM_INSTANCE_PORT="${AEM_INSTANCE_PORTS[$j]}"
+                            break;
+                        fi
+                    done
+
+                    if [[ "" == "${AEM_INSTANCE_PORT}" ]]; then
                         AEM_INSTANCE_PORT=`grep '^\tCQ_PORT=[0-9]*$' "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAMES[$i]}/crx-quickstart/bin/start" | awk -F = '{print $2}'`
-                    else
-                        AEM_INSTANCE_PORT="${!PORT_VAR}"
                     fi
 
                     #Start AEM
