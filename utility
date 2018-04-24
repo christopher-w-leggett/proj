@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Returns the absolute path to the project directory for the provided project name. TODO: Remove symlink logic and relative_dir logic from this.
+# Returns the absolute path to the project directory for the provided project name.
 project_directory(){
     #Read arguments
     local PROJ_NAME="${1}"
@@ -199,7 +199,6 @@ set_config(){
     local PROP_VALUE="${3}"
 
     if [ ! -d "${CONF_DIR}" ]; then
-        # TODO: Move this call into else block when determining if we are dealing with a project specific config.
         mkdir -p "${CONF_DIR}"
     fi
     if [ ! -f "${CONF_FILE}" ]; then

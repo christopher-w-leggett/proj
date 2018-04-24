@@ -91,9 +91,7 @@ _setup_aem(){
         read ADDED_PACKAGE
     done
 
-    #TODO: First make sites directory in case alternate has been provided.
-
-    # Create install directory
+    # Create install directory (sites project directory should exist from init command.)
     local INSTALL_DIR="${PROJ_DIR}/sites/aem/${INSTANCE_NAME}"
     if [ ! -d "${INSTALL_DIR}" ]; then
         printf "Creating ${INSTALL_DIR}.\n"
