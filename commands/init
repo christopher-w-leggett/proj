@@ -12,8 +12,9 @@ command_init(){
             ensure_project_directory "${PROJ_NAME}" "code"
             ensure_project_directory "${PROJ_NAME}" "dependencies"
             ensure_project_directory "${PROJ_NAME}" "documents"
+            ensure_project_directory "${PROJ_NAME}" "sites"
 
-            local HIDDEN_PROJ_DIR=$(project_directory "${PROJ_NAME}" ".proj")
+            local HIDDEN_PROJ_DIR="${PROJ_DIR}/.proj"
             printf '%s\n' "Copying initial system files to ${HIDDEN_PROJ_DIR}."
             cp -r "${PROGRAM_DIR}/.proj"/* "${HIDDEN_PROJ_DIR}"
 

@@ -1,35 +1,15 @@
 #!/bin/bash
 
-# Returns the absolute path to the project directory for the provided project name and relative path.  The
-# returned directory isn't guaranteed to exist.
+# Returns the absolute path to the project directory for the provided project name. TODO: Remove symlink logic and relative_dir logic from this.
 project_directory(){
     #Read arguments
     local PROJ_NAME="${1}"
-    local RELATIVE_DIR="${2}"
 
     #Read projects path from user configuration.  This will always have a value or proj won't run.
     local PROJECTS_DIR=$(get_config "" "proj.paths.projects" "")
 
     #return project directory.  proj.paths.projects config will always contain a value by the time this code runs.
-    local FINAL_DIR=""
-    if [ "" == "${RELATIVE_DIR}" ]; then
-        FINAL_DIR="${PROJECTS_DIR}/${PROJ_NAME}"
-    else
-        #determine directory name of first subdirectory
-        local FIRST_SUBDIR_NAME=$(printf '%s' "${RELATIVE_DIR}" | awk -F/ '{print $1}')
-
-        #get directory configuration (replacing any [[PROJ_NAME]] tokens) and if set,
-        #determine actual directory path for this subdirectory
-        local ABSOLUTE_ROOT_DIR="${PROJECTS_DIR}/${PROJ_NAME}"
-        local SUBDIR_CONFIG=$(get_config "" "proj.paths.alternate.${FIRST_SUBDIR_NAME}" "")
-        SUBDIR_CONFIG="${SUBDIR_CONFIG//\[\[PROJ_NAME\]\]/${PROJ_NAME}}"
-        if [[ "${SUBDIR_CONFIG}" == "->"* ]]; then
-            ABSOLUTE_ROOT_DIR=$(printf '%s' "${SUBDIR_CONFIG}" | awk -F'->' '{ print $2 }')
-        fi
-
-        #return final path
-        FINAL_DIR="${ABSOLUTE_ROOT_DIR}/${RELATIVE_DIR}"
-    fi
+    local FINAL_DIR="${PROJECTS_DIR}/${PROJ_NAME}"
 
     printf '%s' "${FINAL_DIR}"
 }
@@ -212,8 +192,6 @@ set_config(){
     if [[ "" != "${PROJ_DIR}" && -d "${PROJ_DIR}" ]]; then
         #Found project directory, write to project configuration
         CONF_DIR="${PROJ_DIR}/.proj"
-
-        #TODO make .proj directory if needed in case alternate has been provided.
     fi
 
     local CONF_FILE="${CONF_DIR}/proj.cfg"
@@ -221,6 +199,7 @@ set_config(){
     local PROP_VALUE="${3}"
 
     if [ ! -d "${CONF_DIR}" ]; then
+        # TODO: Move this call into else block when determining if we are dealing with a project specific config.
         mkdir -p "${CONF_DIR}"
     fi
     if [ ! -f "${CONF_FILE}" ]; then

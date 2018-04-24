@@ -7,77 +7,84 @@ command_alias(){
     local ALIAS="${3}"
     shift 3
 
-    local PROJ_DIR=$(project_directory "${PROJ_NAME}")
-    local ALIAS_DIR="${PROJ_DIR}/.proj"
-    #TODO: Make sure .proj exists and create if not in case alternative is provided. (Rename to HIDDEN_PROJ_DIR)
-    local ALIAS_FILE="${ALIAS_DIR}/aliases"
+    if [[ -n "${PROJ_NAME}" && "" != "${PROJ_NAME}" ]]; then
+        local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
-    if [ "list" == "${ACTION}" ]; then
-        if [[ "" != "${PROJ_NAME}" && -f "${ALIAS_FILE}" ]]; then
-            local ALIAS_WRITTEN="n"
-            while read -r ALIAS_LINE || [[ -n "${ALIAS_LINE}" ]]; do
-                if [ "" != "${ALIAS_LINE}" ]; then
-                    local ALIAS_NAME=$(printf "${ALIAS_LINE}" | awk -F= '{ st = index($0,"=");print substr($0,0,st-1)}')
-                    local ALIASED_NAMES=($(printf "${ALIAS_LINE}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'))
+        if [ -d "${PROJ_DIR}" ]; then
+            local HIDDEN_PROJ_DIR="${PROJ_DIR}/.proj"
+            local ALIAS_FILE="${HIDDEN_PROJ_DIR}/aliases"
 
-                    if [ "y" == "${ALIAS_WRITTEN}" ]; then
-                        printf "\n"
+            if [ "list" == "${ACTION}" ]; then
+                if [[ -f "${ALIAS_FILE}" ]]; then
+                    local ALIAS_WRITTEN="n"
+                    while read -r ALIAS_LINE || [[ -n "${ALIAS_LINE}" ]]; do
+                        if [ "" != "${ALIAS_LINE}" ]; then
+                            local ALIAS_NAME=$(printf "${ALIAS_LINE}" | awk -F= '{ st = index($0,"=");print substr($0,0,st-1)}')
+                            local ALIASED_NAMES=($(printf "${ALIAS_LINE}" | awk -F= '{ st = index($0,"=");print substr($0,st+1)}'))
+
+                            if [ "y" == "${ALIAS_WRITTEN}" ]; then
+                                printf "\n"
+                            fi
+
+                            printf "${ALIAS_NAME}\n"
+                            for ALIASED_NAME in "${ALIASED_NAMES[@]}"; do
+                                printf " \`${ALIASED_NAME}\n"
+                            done
+
+                            ALIAS_WRITTEN="y"
+                        fi
+                    done < "${ALIAS_FILE}"
+
+                    if [[ "n" == "${ALIAS_WRITTEN}" ]]; then
+                        printf "No aliases defined.\n"
                     fi
-
-                    printf "${ALIAS_NAME}\n"
-                    for ALIASED_NAME in "${ALIASED_NAMES[@]}"; do
-                        printf " \`${ALIASED_NAME}\n"
-                    done
-
-                    ALIAS_WRITTEN="y"
-                fi
-            done < "${ALIAS_FILE}"
-
-            if [[ "n" == "${ALIAS_WRITTEN}" ]]; then
-                printf "No aliases defined.\n"
-            fi
-        else
-            printf "No aliases defined.\n"
-        fi
-    elif [[ "set" == "${ACTION}" || "delete" == "${ACTION}" ]]; then
-        if [[ "" != "${ALIAS}" && "" != "${PROJ_NAME}" ]]; then
-            if [ "set" == "${ACTION}" ]; then
-                #Ensure directory and aliases file exists
-                if [ ! -d "${ALIAS_DIR}" ]; then
-                    mkdir -p "${ALIAS_DIR}"
-                fi
-                if [ ! -f "${ALIAS_FILE}" ]; then
-                    touch "${ALIAS_FILE}"
-                fi
-
-                #Gather aliases
-                local AEM_INSTANCE_NAMES="${1}"
-                shift
-                for AEM_INSTANCE_NAME in $@; do
-                    AEM_INSTANCE_NAMES="${AEM_INSTANCE_NAMES} ${AEM_INSTANCE_NAME}"
-                done
-
-                #Add alias
-                if grep "${ALIAS}=" "${ALIAS_FILE}" >/dev/null; then
-                    #Replace alias
-                    sed -i '' -e "s/${ALIAS}=.*/${ALIAS}=${AEM_INSTANCE_NAMES}/g" "${ALIAS_FILE}"
                 else
-                    #Append alias
-                    printf "${ALIAS}=${AEM_INSTANCE_NAMES}\n" >> ${ALIAS_FILE}
+                    printf "No aliases defined.\n"
                 fi
-            elif [ -f "${ALIAS_FILE}" ]; then
-                if grep "${ALIAS}=" "${ALIAS_FILE}" >/dev/null; then
-                    #Delete alias
-                    sed -i '' -e "/${ALIAS}=.*/d" "${ALIAS_FILE}"
+            elif [[ "set" == "${ACTION}" || "delete" == "${ACTION}" ]]; then
+                if [[ "" != "${ALIAS}" ]]; then
+                    if [ "set" == "${ACTION}" ]; then
+                        #Ensure aliases file exists
+                        if [ ! -f "${ALIAS_FILE}" ]; then
+                            touch "${ALIAS_FILE}"
+                        fi
+
+                        #Gather aliases
+                        local AEM_INSTANCE_NAMES="${1}"
+                        shift
+                        for AEM_INSTANCE_NAME in $@; do
+                            AEM_INSTANCE_NAMES="${AEM_INSTANCE_NAMES} ${AEM_INSTANCE_NAME}"
+                        done
+
+                        #Add alias
+                        if grep "${ALIAS}=" "${ALIAS_FILE}" >/dev/null; then
+                            #Replace alias
+                            sed -i '' -e "s/${ALIAS}=.*/${ALIAS}=${AEM_INSTANCE_NAMES}/g" "${ALIAS_FILE}"
+                        else
+                            #Append alias
+                            printf "${ALIAS}=${AEM_INSTANCE_NAMES}\n" >> ${ALIAS_FILE}
+                        fi
+                    elif [ -f "${ALIAS_FILE}" ]; then
+                        if grep "${ALIAS}=" "${ALIAS_FILE}" >/dev/null; then
+                            #Delete alias
+                            sed -i '' -e "/${ALIAS}=.*/d" "${ALIAS_FILE}"
+                        fi
+                    fi
+                else
+                    printf "Alias name is required.\n"
+                    return 81
                 fi
+            else
+                printf "list, set or delete action must be provided.\n"
+                return 80
             fi
         else
-            printf "Alias name is required.\n"
-            return 81
+            printf "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}.\n"
+            return 65
         fi
     else
-        printf "list, set or delete must be provided.\n"
-        return 80
+        printf "A project name is required to work with aliases.  Use '${PROGRAM_NAME} help alias' for help with the alias command.\n"
+        return 64
     fi
 }
 
