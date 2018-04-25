@@ -4,6 +4,12 @@ _setup_dispatcher_darwin_check(){
     local PROJ_DIR="${1}"
     local STATUS=0
 
+    # Verify current user
+    if ! id -Gn | grep -q -w admin; then
+        printf "%s\n" "Current user must be an administrator to setup dispatcher."
+        STATUS=83
+    fi
+
     # Verify apachectl command exists
     if ! which apachectl > /dev/null; then
         printf "Failed to locate apachectl command.\n"
@@ -25,13 +31,24 @@ _setup_dispatcher_darwin_check(){
 }
 
 _setup_dispatcher_darwin(){
-    # TODO: Prompt for user password and verify prior to running dispatcher setup.  Pass into each sudo command via -S and wipe out with -k in same sudo command so password must be used each time.
-    # TODO: read -s -p "Password: " PASSWORD
-    # TODO: printf "%s\n" 'password' | sudo -S -k whoami 2> /dev/null;echo $?
     # Grab parameters
     local DISPATCHER_MODULE_PATH="${1}"
     local PROJ_NAME="${2}"
     local PROJ_DIR=$(project_directory "${PROJ_NAME}")
+
+    # Ask for user password
+    local USER_PASS=""
+    local PASS_INPUT_MESSAGE="Your password is required to setup dispatcher as elevated permissions are required for certain tasks.  Please provide your password to continue."
+    while [[ "" == "${USER_PASS}" ]]; do
+        printf "%s\n" "${PASS_INPUT_MESSAGE}"
+        read -s -p "Password: " USER_PASS
+        printf "\n"
+
+        if ! printf "%s\n" "${USER_PASS}" | sudo -S -k whoami >/dev/null 2>/dev/null; then
+            PASS_INPUT_MESSAGE="Invalid password."
+            USER_PASS=""
+        fi
+    done
 
     # Gather AEM instance names
     local AEM_INSTANCE_NAMES=()
@@ -72,7 +89,7 @@ _setup_dispatcher_darwin(){
             printf "Creating ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www.\n"
             mkdir "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www"
             chmod 775 "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www"
-            sudo chgrp _www "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www"
+            printf "%s\n" "${USER_PASS}" | sudo -S -k chgrp _www "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/www" 2>/dev/null
         fi
 
         # Process string replacements
@@ -84,25 +101,25 @@ _setup_dispatcher_darwin(){
         local APACHE_CONF_FILE="${APACHE_CONF_DIR}/${PROJ_NAME}_${INSTANCE_NAME}.conf"
         if [ ! -f "${APACHE_CONF_FILE}" ]; then
             printf "Copying site httpd configuration ${PROGRAM_DIR}/templates/disp.conf.template to ${APACHE_CONF_FILE}.\n"
-            sudo cp "${PROGRAM_DIR}/templates/disp.conf.template" "${APACHE_CONF_FILE}"
+            printf "%s\n" "${USER_PASS}" | sudo -S -k cp "${PROGRAM_DIR}/templates/disp.conf.template" "${APACHE_CONF_FILE}" 2>/dev/null
 
             # Configure site httpd configuration
-            sudo sed -i '' -e "s/<disp-module>/${DISPATCHER_MODULE_REPLACE}/g" "${APACHE_CONF_FILE}"
-            sudo sed -i '' -e "s/<site-domain>/${DOMAIN_NAME}/g" "${APACHE_CONF_FILE}"
-            sudo sed -i '' -e "s/<site-name>/${INSTANCE_NAME}/g" "${APACHE_CONF_FILE}"
-            sudo sed -i '' -e "s/<project-dir>/${PROJ_DIR_REPLACE}/g" "${APACHE_CONF_FILE}"
+            printf "%s\n" "${USER_PASS}" | sudo -S -k sed -i '' -e "s/<disp-module>/${DISPATCHER_MODULE_REPLACE}/g" "${APACHE_CONF_FILE}" 2>/dev/null
+            printf "%s\n" "${USER_PASS}" | sudo -S -k sed -i '' -e "s/<site-domain>/${DOMAIN_NAME}/g" "${APACHE_CONF_FILE}" 2>/dev/null
+            printf "%s\n" "${USER_PASS}" | sudo -S -k sed -i '' -e "s/<site-name>/${INSTANCE_NAME}/g" "${APACHE_CONF_FILE}" 2>/dev/null
+            printf "%s\n" "${USER_PASS}" | sudo -S -k sed -i '' -e "s/<project-dir>/${PROJ_DIR_REPLACE}/g" "${APACHE_CONF_FILE}" 2>/dev/null
         fi
 
         # Setup dispatcher.any file
         if [ ! -f "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any" ]; then
             printf "Copying dispatcher configuration ${PROGRAM_DIR}/templates/dispatcher.any.template to ${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any.\n"
-            sudo cp "${PROGRAM_DIR}/templates/dispatcher.any.template" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any"
+            printf "%s\n" "${USER_PASS}" | sudo -S -k cp "${PROGRAM_DIR}/templates/dispatcher.any.template" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any" 2>/dev/null
 
             # Configure site httpd configuration
-            sudo sed -i '' -e "s/<site-domain>/${DOMAIN_NAME}/g" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any"
-            sudo sed -i '' -e "s/<site-name>/${INSTANCE_NAME}/g" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any"
-            sudo sed -i '' -e "s/<site-port>/${PORT}/g" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any"
-            sudo sed -i '' -e "s/<project-dir>/${PROJ_DIR_REPLACE}/g" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any"
+            printf "%s\n" "${USER_PASS}" | sudo -S -k sed -i '' -e "s/<site-domain>/${DOMAIN_NAME}/g" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any" 2>/dev/null
+            printf "%s\n" "${USER_PASS}" | sudo -S -k sed -i '' -e "s/<site-name>/${INSTANCE_NAME}/g" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any" 2>/dev/null
+            printf "%s\n" "${USER_PASS}" | sudo -S -k sed -i '' -e "s/<site-port>/${PORT}/g" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any" 2>/dev/null
+            printf "%s\n" "${USER_PASS}" | sudo -S -k sed -i '' -e "s/<project-dir>/${PROJ_DIR_REPLACE}/g" "${PROJ_DIR}/sites/apache/${INSTANCE_NAME}/conf/dispatcher.any" 2>/dev/null
         fi
 
         # Append domain to hosts file if it doesn't exist.
@@ -111,11 +128,11 @@ _setup_dispatcher_darwin(){
             printf 'Domain already found in hosts file.\n'
         else
             local DOMAIN_ENTRY="127.0.0.1 ${DOMAIN_NAME}"
-            sudo -- sh -c "printf '${DOMAIN_ENTRY}\n' >> /etc/hosts"
+            printf "%s\n" "${USER_PASS}" | sudo -S -k -- sh -c "printf '${DOMAIN_ENTRY}\n' >> /etc/hosts" 2>/dev/null
         fi
 
         # Cycle Apache
-        sudo apachectl -k graceful
+        printf "%s\n" "${USER_PASS}" | sudo -S -k apachectl -k graceful 2>/dev/null
     else
         printf "Unable to setup dispatcher module.  No AEM instances exist.  Please setup an AEM instance first.\n"
         return 81
