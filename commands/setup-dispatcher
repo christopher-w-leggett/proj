@@ -1,25 +1,18 @@
 #!/bin/bash
 
-# TODO: Try to avoid using sudo.  Check user access before running and notify appropriately.
 _setup_dispatcher_darwin_check(){
+    local PROJ_DIR="${1}"
     local STATUS=0
 
-    # Verify apachectl command exists (which apachectl >/dev/null; printf $?)
-    # TODO: Make this location configurable?
+    # Verify apachectl command exists
     if ! which apachectl > /dev/null; then
         printf "Failed to locate apachectl command.\n"
         STATUS=83
     fi
 
-    # TODO: Make this location configurable
-    if [ ! -f "/etc/apache2/httpd.conf" ]; then
-        printf "Failed to locate /etc/apache2/httpd.conf file.\n"
-        STATUS=83
-    fi
-
-    # TODO: Make this location configurable
-    if [ ! -d "/etc/apache2/other" ]; then
-        printf "Failed to locate /etc/apache2/other directory.\n"
+    local APACHE_CONF_DIR=$(get_config "${PROJ_DIR}" "aem.dispatcher.conf.dir" "/etc/apache2/other")
+    if [ ! -d "${APACHE_CONF_DIR}" ]; then
+        printf "Failed to locate ${APACHE_CONF_DIR} directory.\n"
         STATUS=83
     fi
 
@@ -32,6 +25,9 @@ _setup_dispatcher_darwin_check(){
 }
 
 _setup_dispatcher_darwin(){
+    # TODO: Prompt for user password and verify prior to running dispatcher setup.  Pass into each sudo command via -S and wipe out with -k in same sudo command so password must be used each time.
+    # TODO: read -s -p "Password: " PASSWORD
+    # TODO: printf "%s\n" 'password' | sudo -S -k whoami 2> /dev/null;echo $?
     # Grab parameters
     local DISPATCHER_MODULE_PATH="${1}"
     local PROJ_NAME="${2}"
@@ -84,16 +80,17 @@ _setup_dispatcher_darwin(){
         local PROJ_DIR_REPLACE="${PROJ_DIR//\//\\/}"
 
         # Setup site httpd configuration
-        # TODO: Location to store dispatcher config should be configurable.
-        if [ ! -f "/etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf" ]; then
-            printf "Copying site httpd configuration ${PROGRAM_DIR}/templates/disp.conf.template to /etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf.\n"
-            sudo cp "${PROGRAM_DIR}/templates/disp.conf.template" "/etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf"
+        local APACHE_CONF_DIR=$(get_config "${PROJ_DIR}" "aem.dispatcher.conf.dir" "/etc/apache2/other")
+        local APACHE_CONF_FILE="${APACHE_CONF_DIR}/${PROJ_NAME}_${INSTANCE_NAME}.conf"
+        if [ ! -f "${APACHE_CONF_FILE}" ]; then
+            printf "Copying site httpd configuration ${PROGRAM_DIR}/templates/disp.conf.template to ${APACHE_CONF_FILE}.\n"
+            sudo cp "${PROGRAM_DIR}/templates/disp.conf.template" "${APACHE_CONF_FILE}"
 
             # Configure site httpd configuration
-            sudo sed -i '' -e "s/<disp-module>/${DISPATCHER_MODULE_REPLACE}/g" "/etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf"
-            sudo sed -i '' -e "s/<site-domain>/${DOMAIN_NAME}/g" "/etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf"
-            sudo sed -i '' -e "s/<site-name>/${INSTANCE_NAME}/g" "/etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf"
-            sudo sed -i '' -e "s/<project-dir>/${PROJ_DIR_REPLACE}/g" "/etc/apache2/other/${PROJ_NAME}_${INSTANCE_NAME}.conf"
+            sudo sed -i '' -e "s/<disp-module>/${DISPATCHER_MODULE_REPLACE}/g" "${APACHE_CONF_FILE}"
+            sudo sed -i '' -e "s/<site-domain>/${DOMAIN_NAME}/g" "${APACHE_CONF_FILE}"
+            sudo sed -i '' -e "s/<site-name>/${INSTANCE_NAME}/g" "${APACHE_CONF_FILE}"
+            sudo sed -i '' -e "s/<project-dir>/${PROJ_DIR_REPLACE}/g" "${APACHE_CONF_FILE}"
         fi
 
         # Setup dispatcher.any file
@@ -118,7 +115,6 @@ _setup_dispatcher_darwin(){
         fi
 
         # Cycle Apache
-        # TODO: Make apachectl location configurable???
         sudo apachectl -k graceful
     else
         printf "Unable to setup dispatcher module.  No AEM instances exist.  Please setup an AEM instance first.\n"
@@ -136,7 +132,7 @@ command_setup-dispatcher(){
         if [ -d "${PROJ_DIR}" ]; then
             local DISTRO="$(uname | tr '[:upper:]' '[:lower:]')"
             if declare -f "_setup_dispatcher_${DISTRO}_check" > /dev/null; then
-                if "_setup_dispatcher_${DISTRO}_check"; then
+                if "_setup_dispatcher_${DISTRO}_check" "${PROJ_DIR}"; then
                     #Grab any configured default dispatcher module
                     local DEFAULT_DISPATCHER_MODULE_PATH=$(get_config "${PROJ_DIR}" "aem.default.dispatcher.module" "")
 
