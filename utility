@@ -33,20 +33,27 @@ ensure_project_directory(){
     else
         #determine directory name of first subdirectory
         local FIRST_SUBDIR_NAME=$(printf '%s' "${RELATIVE_DIR}" | awk -F/ '{print $1}')
-        LINK_DIR="${PROJECTS_DIR}/${PROJ_NAME}/${FIRST_SUBDIR_NAME}"
 
         #get directory configuration (replacing any [[PROJ_NAME]] tokens) and if set,
         #determine actual directory path for this subdirectory
-        local ABSOLUTE_ROOT_DIR="${PROJECTS_DIR}/${PROJ_NAME}"
+        local ABSOLUTE_ROOT_DIR=""
         local SUBDIR_CONFIG=$(get_config "" "proj.paths.alternate.${FIRST_SUBDIR_NAME}" "")
         SUBDIR_CONFIG="${SUBDIR_CONFIG//\[\[PROJ_NAME\]\]/${PROJ_NAME}}"
         if [[ "${SUBDIR_CONFIG}" == "->"* ]]; then
+            LINK_DIR="${PROJECTS_DIR}/${PROJ_NAME}/${FIRST_SUBDIR_NAME}"
             ABSOLUTE_ROOT_DIR=$(printf '%s' "${SUBDIR_CONFIG}" | awk -F'->' '{ print $2 }')
+        elif [[ "${SUBDIR_CONFIG}" == "<-"* ]]; then
+            LINK_DIR=$(printf '%s' "${SUBDIR_CONFIG}" | awk -F'<-' '{ print $2 }')"/${FIRST_SUBDIR_NAME}"
+            ABSOLUTE_ROOT_DIR="${PROJECTS_DIR}/${PROJ_NAME}"
+        else
+            ABSOLUTE_ROOT_DIR="${PROJECTS_DIR}/${PROJ_NAME}"
         fi
 
-        #return final path
-        FINAL_DIR="${ABSOLUTE_ROOT_DIR}/${RELATIVE_DIR}"
-        FIRST_SUBDIR="${ABSOLUTE_ROOT_DIR}/${FIRST_SUBDIR_NAME}"
+        #determine final path
+        if [ "" != "${ABSOLUTE_ROOT_DIR}" ]; then
+            FINAL_DIR="${ABSOLUTE_ROOT_DIR}/${RELATIVE_DIR}"
+            FIRST_SUBDIR="${ABSOLUTE_ROOT_DIR}/${FIRST_SUBDIR_NAME}"
+        fi
     fi
 
     if [[ "" != "${FINAL_DIR}" && ! -d "${FINAL_DIR}" ]]; then
