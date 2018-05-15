@@ -2,7 +2,7 @@
 
 PROGRAM_NAME=$(basename "$0")
 PROGRAM_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-PROGRAM_VERSION="0.0.1"
+PROGRAM_VERSION="0.2.0"
 
 #####################
 # Include Utilities #
@@ -25,15 +25,15 @@ done
 while getopts ":vh" opt; do
     case "${opt}" in
         v)
-            echo "proj version ${PROGRAM_VERSION}"
+            printf "proj version ${PROGRAM_VERSION}\n"
             exit 0
             ;;
         \?)
-            echo "Invalid option: -${OPTARG}" >&2
+            printf "Invalid option: -${OPTARG}\n" >&2
             exit 67
             ;;
         \:)
-            echo "Option -${OPTARG} requires an argument." >&2
+            printf "Option -${OPTARG} requires an argument.\n" >&2
             exit 68
             ;;
     esac
@@ -46,7 +46,10 @@ if [ "${1}" == "help" ]; then
     shift
 fi
 
-COMMAND_NAMES=("${1}")
+COMMAND_NAMES=()
+if [[ " ${VALID_COMMANDS[*]} " == *" ${1} "* ]]; then
+    COMMAND_NAMES+=("${1}")
+fi
 shift
 if [ "y" == "${HAS_HELP_OPTION}" ]; then
     while [[ " ${VALID_COMMANDS[*]} " == *" ${1} "* ]]; do
@@ -56,6 +59,18 @@ if [ "y" == "${HAS_HELP_OPTION}" ]; then
 fi
 
 if [[ "n" == "${HAS_HELP_OPTION}" && ${#COMMAND_NAMES[@]} -ne 0 ]]; then
+    #Verify projects directory configuration is set prior to running commands
+    PROJECTS_DIR=$(get_config "" "proj.paths.projects" "")
+    while [[ "" == "${PROJECTS_DIR}" ]]; do
+        printf "proj.paths.projects configuration is required.  Please provide a valid directory where projects will be managed:\n"
+        read PROJECTS_DIR
+
+        if [[ "" != "${PROJECTS_DIR}" ]]; then
+            set_config "" "proj.paths.projects" "${PROJECTS_DIR}"
+        fi
+    done
+
+    #Run commands
     for COMMAND_NAME in ${COMMAND_NAMES[@]}; do
         command_${COMMAND_NAME} "$@"
 

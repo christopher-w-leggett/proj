@@ -1,29 +1,51 @@
 #!/bin/bash
 
 command_config(){
-    #retrieve first argument and verify "get" or "set" has been provided.
+    #retrieve arguments
     local ACTION="${1}"
     shift
 
-    if [ "get" == "${ACTION}" ]; then
-        local PROP_VALUE=$(get_config "$@")
-        echo "${PROP_VALUE}"
-    elif [ "set" == "${ACTION}" ]; then
-        set_config "$@"
+    #determine project directory for getting/setting configurations
+    local PROJ_NAME="${1}"
+    local PROJ_DIR=""
+    if [ "" != "${PROJ_NAME}" ]; then
+        PROJ_DIR=$(project_directory "${PROJ_NAME}")
+    fi
+    if [[ "" != "${PROJ_DIR}" && -d "${PROJ_DIR}" ]]; then
+        #project exists, shift arguments
+        shift
     else
-        echo "get or set must be provided."
+        #project doesn't exist, clear project directory
+        PROJ_DIR=""
+    fi
+
+    #verify arguments
+    if [[ "get" != "${ACTION}" && "set" != "${ACTION}" ]]; then
+        printf '%s\n' "get or set must be provided.  Use '${PROGRAM_NAME} help config' for help with the config command."
         return 80
+    fi
+    local PROPERTY_NAME="${1}"
+    if [ "" == "${PROPERTY_NAME}" ]; then
+        printf '%s\n' "Property name must be provided.  Use '${PROGRAM_NAME} help config' for help with the config command."
+        return 81
+    fi
+
+    if [ "get" == "${ACTION}" ]; then
+        local PROP_VALUE=$(get_config "${PROJ_DIR}" "$@")
+        printf '%s\n' "${PROP_VALUE}"
+    else
+        set_config "${PROJ_DIR}" "$@"
     fi
 }
 
 command_config_help(){
-    echo "USAGE"
-    echo "   ${PROGRAM_NAME} config get|set [<project_name>] <property> [<default-value>|<value>]"
-    echo ""
-    echo "DESCRIPTION"
-    echo "   The 'config' command is used to get or set configurations.  A project name may be provided to get or set a configuration at the project level.  If no project name is provided, the configuration will be set at the user level and retrieved by first looking at the user level and then the global level."
+    printf "USAGE\n"
+    printf "   ${PROGRAM_NAME} config get|set [<project_name>] <property> [<default-value>|<value>]\n"
+    printf "\n"
+    printf "DESCRIPTION\n"
+    printf "   The 'config' command is used to get or set configurations.  A project name may be provided to get or set a configuration at the project level.  If no project name is provided, the configuration will be set at the user level and retrieved by first looking at the user level and then the global level.\n"
 }
 
 command_config_help_short(){
-    echo "Gets or sets configurations at a user or project level."
+    printf "Gets or sets configurations at a user or project level.\n"
 }

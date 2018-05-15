@@ -8,12 +8,12 @@ command_stop(){
         local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
         if [ -d "${PROJ_DIR}" ]; then
-            local AEM_DEFAULT_INSTANCE_NAME=$(get_config "${PROJ_NAME}" "aem.default.instance.name" "author")
+            local AEM_DEFAULT_INSTANCE_NAME=$(get_config "${PROJ_DIR}" "aem.default.instance.name" "author")
             local AEM_INSTANCE_NAMES=("${AEM_DEFAULT_INSTANCE_NAME}")
             if [ $# -gt 0 ]; then
                 AEM_INSTANCE_NAMES=("${@}")
             fi
-            expand_aliases AEM_INSTANCE_NAMES "${PROJ_NAME}" "${AEM_INSTANCE_NAMES[@]}"
+            expand_aliases AEM_INSTANCE_NAMES "${PROJ_DIR}" "${AEM_INSTANCE_NAMES[@]}"
 
             for AEM_INSTANCE_NAME in ${AEM_INSTANCE_NAMES[@]}; do
                 if [ -f "${PROJ_DIR}/sites/aem/${AEM_INSTANCE_NAME}/crx-quickstart/bin/stop" ]; then
@@ -41,27 +41,27 @@ command_stop(){
                         "${PROJ_DIR}/.proj/bin/post-stop" "${AEM_INSTANCE_NAME}"
                     fi
                 else
-                    echo "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAME} AEM instance.  Unable to stop the ${AEM_INSTANCE_NAME} AEM instance."
+                    printf "The ${PROJ_NAME} project doesn't have the requested ${AEM_INSTANCE_NAME} AEM instance.  Unable to stop the ${AEM_INSTANCE_NAME} AEM instance.\n"
                 fi
             done
         else
-            echo "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}.  Unable to stop ${PROJ_NAME}."
+            printf "The ${PROJ_NAME} project doesn't exist in directory ${PROJ_DIR}.  Unable to stop ${PROJ_NAME}.\n"
             return 65
         fi
     else
-        echo "A project name is required to stop a project.  Use '${PROGRAM_NAME} help stop' for help with the stop command."
+        printf "A project name is required to stop a project.  Use '${PROGRAM_NAME} help stop' for help with the stop command.\n"
         return 64
     fi
 }
 
 command_stop_help(){
-    echo "USAGE"
-    echo "   ${PROGRAM_NAME} stop <project_name> [(<aem_instance_name> | <alias>)...]"
-    echo ""
-    echo "DESCRIPTION"
-    echo "   The 'stop' command is used to stop an AEM instance for an existing project.  If no aem_instance_name is provided, the configured default instance is stopped.  If no configured default exists, the author instance is stopped."
+    printf "USAGE\n"
+    printf "   ${PROGRAM_NAME} stop <project_name> [(<aem_instance_name> | <alias>)...]\n"
+    printf "\n"
+    printf "DESCRIPTION\n"
+    printf "   The 'stop' command is used to stop an AEM instance for an existing project.  If no aem_instance_name is provided, the configured default instance is stopped.  If no configured default exists, the author instance is stopped.\n"
 }
 
 command_stop_help_short(){
-    echo "Stops a project using its stop script."
+    printf "Stops a project using its stop script.\n"
 }

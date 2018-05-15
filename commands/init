@@ -7,35 +7,36 @@ command_init(){
         local PROJ_DIR=$(project_directory "${PROJ_NAME}")
 
         if [ ! -d "${PROJ_DIR}" ]; then
-            echo "Creating ${PROJ_DIR}."
-            mkdir "${PROJ_DIR}"
-            cp -r "${PROGRAM_DIR}/.proj" "${PROJ_DIR}/.proj"
-            echo "Creating ${PROJ_DIR}/code."
-            mkdir "${PROJ_DIR}/code"
-            echo "Creating ${PROJ_DIR}/dependencies."
-            mkdir "${PROJ_DIR}/dependencies"
-            echo "Creating ${PROJ_DIR}/documents."
-            mkdir "${PROJ_DIR}/documents"
+            ensure_project_directory "${PROJ_NAME}"
+            ensure_project_directory "${PROJ_NAME}" ".proj"
+            ensure_project_directory "${PROJ_NAME}" "code"
+            ensure_project_directory "${PROJ_NAME}" "dependencies"
+            ensure_project_directory "${PROJ_NAME}" "documents"
+            ensure_project_directory "${PROJ_NAME}" "sites"
 
-            echo "Project structure created at ${PROJ_DIR}"
+            local HIDDEN_PROJ_DIR="${PROJ_DIR}/.proj"
+            printf '%s\n' "Copying initial system files to ${HIDDEN_PROJ_DIR}."
+            cp -r "${PROGRAM_DIR}/.proj"/* "${HIDDEN_PROJ_DIR}"
+
+            printf "Project structure created at ${PROJ_DIR}.\n"
         else
-            echo "The ${PROJ_NAME} project already exists in directory ${PROJ_DIR}."
+            printf "The ${PROJ_NAME} project already exists at directory ${PROJ_DIR}.\n"
             return 80
         fi
     else
-        echo "A project name is required to initialize the project directory.  Use '${PROGRAM_NAME} help init' for help with the init command."
+        printf "A project name is required to initialize the project directory.  Use '${PROGRAM_NAME} help init' for help with the init command.\n"
         return 64
     fi
 }
 
 command_init_help(){
-    echo "USAGE"
-    echo "   ${PROGRAM_NAME} init <project_name>"
-    echo ""
-    echo "DESCRIPTION"
-    echo "   The 'init' command can be used to initialize a new project.  This command will setup a default directory structure for a new project."
+    printf "USAGE\n"
+    printf "   ${PROGRAM_NAME} init <project_name>\n"
+    printf "\n"
+    printf "DESCRIPTION\n"
+    printf "   The 'init' command can be used to initialize a new project.  This command will setup a default directory structure for a new project.\n"
 }
 
 command_init_help_short(){
-    echo "Initializes a project's directory structure."
+    printf "Initializes a project's directory structure.\n"
 }
