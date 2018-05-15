@@ -16,6 +16,9 @@ _setup_aem(){
     local DEFAULT_AUTHOR_DEBUG_PORT=$(get_config "${PROJ_DIR}" "aem.default.author.debug.port" "30303")
     local DEFAULT_PUBLISH_DEBUG_PORT=$(get_config "${PROJ_DIR}" "aem.default.publish.debug.port" "30304")
 
+    # Get license file location
+    local LICENSE_FILE=$(get_config "${PROJ_DIR}" "aem.license.file" "")
+
     # Get AEM instance name
     local INSTANCE_NAME=""
     local INSTANCE_NAME_QUESTION="Please name this AEM instance [${DEFAULT_INSTANCE_NAME}]:"
@@ -101,6 +104,11 @@ _setup_aem(){
     # Setup AEM
     printf "Copying ${AEM_JAR_PATH} to ${INSTALL_DIR}.\n"
     cp "${AEM_JAR_PATH}" "${INSTALL_DIR}"
+
+    if [[ "" != "${LICENSE_FILE}" && -f "${LICENSE_FILE}" ]]; then
+        printf "%s\n" "Copying license file ${LICENSE_FILE} to ${INSTALL_DIR}/license.properties"
+        cp "${LICENSE_FILE}" "${INSTALL_DIR}/license.properties"
+    fi
 
     local CURRENT_DIR=$(pwd)
 
