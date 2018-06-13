@@ -7,19 +7,19 @@ is_started(){
     local STATE=$(curl -u "${USER_PASS}" -s "http://${DOMAIN_PORT}/system/console/bundles/.json" | python -c '
 import sys, json;
 
-allBundlesStarted = True
+systemBundlesStarted = False
 
 try:
     bundles = json.load(sys.stdin)["data"]
     for bundle in bundles:
-        if bundle["state"] != "Active" and bundle["state"] != "Fragment":
-            allBundlesStarted = False
+        if bundle["symbolicName"] == "org.apache.felix.framework" and bundle["state"] == "Active":
+            systemBundlesStarted = True
 except ValueError:
-    allBundlesStarted = False
+    systemBundlesStarted = False
 except KeyboardInterrupt:
-    allBundlesStarted = False
+    systemBundlesStarted = False
 
-if allBundlesStarted:
+if systemBundlesStarted:
     print "Started"
 else:
     print "Not Started"')
@@ -61,6 +61,7 @@ wait_for_startup(){
     trap - INT
 }
 
+#TODO: read configuration options from AEM level properties and use java -jar ...jar command directly instead of start script.
 command_start(){
     local PROJ_NAME="${1}"
     shift

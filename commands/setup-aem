@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#TODO: add configuration options to AEM level properties and use java -jar ...jar command directly instead of start script.
 _setup_aem(){
     # Grab parameters
     local AEM_JAR_PATH="${1}"
